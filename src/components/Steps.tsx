@@ -9,8 +9,22 @@ const stepsData = [
   { icon: CreditCard, text: "Efetue o pagamento" },
 ];
 
-// eslint-disable-next-line react/prop-types
-const TimelineItem = ({ icon: Icon, text, isLast, index }) => {
+import type { FC } from "react";
+import type { LucideIcon } from "lucide-react";
+
+type TimelineItemProps = {
+  icon: LucideIcon;
+  text: string;
+  isLast: boolean;
+  index: number;
+};
+
+const TimelineItem: FC<TimelineItemProps> = ({
+  icon: Icon,
+  text,
+  isLast,
+  index,
+}) => {
   const isEven = index % 2 === 0;
 
   const iconBgClasses = isEven
