@@ -19,12 +19,12 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ item }) => {
   return (
     <div
       className={`
-        mb-2 rounded-lg shadow-lg overflow-hidden transition-all duration-300
+        mb-4 rounded-[20px] shadow-lg overflow-hidden transition-all duration-300
         ${isOpen ? "bg-gray-50" : "bg-white"} 
       `}
     >
       <button
-        className="w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800 focus:outline-none"
+        className="w-full flex justify-between items-center p-4 text-left font-bold text-gray-800 focus:outline-none hover:bg-[#ff6969] hover:text-white "
         onClick={toggleOpen}
       >
         <span>{item.question}</span>
@@ -45,7 +45,9 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ item }) => {
           ${isOpen ? "max-h-96 opacity-100 p-4 pt-0" : "max-h-0 opacity-0 p-0"}
         `}
       >
-        <p className="text-gray-600 border-t pt-4">{item.answer}</p>
+        <p className="text-gray-600 font-semibold border-t pt-4">
+          {item.answer}
+        </p>
       </div>
     </div>
   );

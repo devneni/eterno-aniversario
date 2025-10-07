@@ -29,7 +29,12 @@ const LovePageForm: React.FC = () => {
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
-        <input type="text" placeholder="Nome do casal" className={inputClass} />
+        <input
+          id="teste"
+          type="text"
+          placeholder="Nome do casal"
+          className={inputClass}
+        />
 
         <div className="flex space-x-4">
           <input
@@ -66,7 +71,7 @@ const LovePageForm: React.FC = () => {
                 {selectedPlan.musicTips?.map((tip, index) => (
                   <button
                     key={index}
-                    className="px-3 py-1 bg-gray-700 text-sm rounded-full hover:bg-]-[#ff6969] transition duration-200"
+                    className="px-3 py-1 bg-gray-700 text-sm rounded-full hover:bg-[#ff6969] transition duration-200"
                   >
                     {tip}
                   </button>
@@ -92,7 +97,6 @@ const LovePageForm: React.FC = () => {
           </svg>
           <span>Selecione até {selectedPlan.photos} imagens</span>
         </button>
-
         <button className="w-full py-4 bg-[#ff6969] hover:bg-[#ff6969] text-white font-bold rounded-lg transition duration-200 text-xl">
           Crie Sua Página Agora!
         </button>

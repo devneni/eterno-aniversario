@@ -20,7 +20,7 @@ function App() {
             Crie momentos inesquecíveis
           </h1>
 
-          <p className="text-white mb-8 text-left font-bold text-base">
+          <p className="text-white mt-6 mb-8 text-left font-semibold text-base">
             Registre o tempo do seu relacionamento em um site personalizado.{" "}
             <br /> Preencha o formulário e compartilhe com seu amor através de
             um QR Code especial.

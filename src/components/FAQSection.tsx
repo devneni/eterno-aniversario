@@ -28,7 +28,7 @@ const faqData: FaqItem[] = [
   },
   {
     id: 4,
-    question: "Como recebo minha págija personalizada após o pagamento?",
+    question: "Como recebo minha página personalizada após o pagamento?",
     answer:
       "Após a conclusão do pagamento, você receberá um QR code para compartilhar com o aniversariante e um link via e-mail para acessar a página.",
   },
@@ -67,7 +67,7 @@ const faqData: FaqItem[] = [
     id: 10,
     question: "Como posso entrar em contato com o suporte ao cliente?",
     answer:
-      "Você pode entrar em contato com nosso suporte ao cliente através do e-mail",
+      "Você pode entrar em contato com nosso suporte ao cliente através do e-mail eternoaniversario@gmail.com ou pelo WhatsApp (47) 98861-7240.",
   },
 ];
 

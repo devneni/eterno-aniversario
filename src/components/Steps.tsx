@@ -1,6 +1,6 @@
 import "lucide-react";
 import { ListChecks, Calendar, Image, Music, CreditCard } from "lucide-react";
-
+import { FaWhatsapp } from "react-icons/fa";
 const stepsData = [
   { icon: ListChecks, text: "Escolha seu plano" },
   { icon: Calendar, text: "Insira seus dados e de seu amor" },
@@ -73,16 +73,17 @@ function Steps() {
 
       <div className="mx-auto max-w-sm mt-12 mb-8 text-center">
         <a
-          className="inline-block text-white no-underline bg-green-500 hover:bg-green-600 active:bg-green-700 transition duration-200 rounded-full py-4 px-8 font-extrabold shadow-lg transform hover:scale-105"
+          className="inline-block text-white no-underline bg-green-500 hover:bg-green-600 active:bg-green-700 transition duration-200 rounded-full py-4 px-8 font-bold shadow-lg transform hover:scale-105"
           href="https://api.whatsapp.com/send/?phone=554788617240&text&type=phone_number&app_absent=0"
           target="_blank"
           rel="noopener noreferrer"
         >
+          <FaWhatsapp className="inline-block mr-2" size={30} />
           Dúvidas? me chame no WhatsApp
         </a>
       </div>
 
-      <p className="text-center font-bold text-[#f1acb7] text-3xl mt-12">
+      <p className="text-center font-bold text-[#f1acb7] text-3xl mt-12 mb-8">
         Perguntas Frequentes (FAQ)
       </p>
     </>
