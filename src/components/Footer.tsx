@@ -6,7 +6,8 @@ function Footer() {
   return (
     <div className=" bg-[#121212] py-4 pb-8 ">
       <footer className="font-semibold text-center text-[10px] text-white">
-        Eterno Aniversário © - Todos os direitos reservados
+        Eterno Aniversário © - Todos os direitos reservados desenvolvido por
+        neni
       </footer>
       <div className="flex justify-center mt-2 space-x-4">
         <a href="https://www.tiktok.com/@eternoaniversario" target="_blank">

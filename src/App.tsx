@@ -1,14 +1,23 @@
+import { useState } from "react";
 import Header from "./components/Header";
 import FAQSection from "./components/FAQSection";
 import Phone from "./components/Phone";
 import Steps from "./components/Steps";
 import Footer from "./components/Footer";
 import LovePageForm from "./components/LovePageForm";
+
 function App() {
+  const [coupleName, setCoupleName] = useState<string>("");
+  const [relationshipTime, setRelationshipTime] = useState<string>("");
+
   return (
     <div
       className="    
           bg-[#121212] 
+          bg-[url('/background.png')]
+          bg-repeat
+          bg-[size:40px_40px]
+          bg-pad
           min-h-screen 
           w-full 
           relative"
@@ -16,7 +25,7 @@ function App() {
       <Header />
       <div className="flex flex-col lg:flex-row w-full max-w-7xl mx-auto p-4">
         <div className="lg:w-3/5">
-          <h1 className="text-[#ff6969] text-3xl md:text-5xl font-bold mt-4 text-left">
+          <h1 className="text-[#ff6969] text-3xl md:text-5xl font-bold mt-6 text-left">
             Crie momentos inesquecíveis
           </h1>
 
@@ -27,12 +36,17 @@ function App() {
           </p>
 
           <div className="mt-8">
-            <LovePageForm />
+            <LovePageForm
+              coupleName={coupleName}
+              setCoupleName={setCoupleName}
+              relationshipTime={relationshipTime} // 🆕 PASSA O TEMPO
+              setRelationshipTime={setRelationshipTime} // 🆕 PASSA A FUNÇÃO
+            />
           </div>
         </div>
 
         <div className="lg:w-2/5 flex justify-center lg:justify-end mt-10 lg:mt-0">
-          <Phone couplename={""} email={""} />
+          <Phone coupleName={coupleName} relationshipTime={relationshipTime} />
         </div>
       </div>
 
