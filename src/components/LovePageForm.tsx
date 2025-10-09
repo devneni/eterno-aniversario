@@ -14,7 +14,7 @@ interface LovePageFormProps {
 const LovePageForm: React.FC<LovePageFormProps> = ({
   coupleName,
   setCoupleName,
-  relationshipTime,
+
   setRelationshipTime,
   CoupleMessage,
   setCoupleMessage,
@@ -27,6 +27,13 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   const [startDate, setStartDate] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
+
+  function handleChangeName(name: string) {
+    setCoupleName(name);
+    // Deve salvar a string nome no cache local do navegador
+    localStorage.setItem("coupleName", name);
+  }
+
   const calculateRelationshipTime = () => {
     if (!startDate) {
       setRelationshipTime("");
@@ -101,7 +108,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           placeholder="Nome do casal"
           className={inputClass}
           value={coupleName}
-          onChange={(e) => setCoupleName(e.target.value)}
+          onChange={(e) => handleChangeName(e.target.value)}
         />
 
         <div className="flex space-x-4">

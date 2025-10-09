@@ -7,9 +7,19 @@ import Footer from "./components/Footer";
 import LovePageForm from "./components/LovePageForm";
 
 function App() {
-  const [coupleName, setCoupleName] = useState<string>("");
+  const [coupleName, setCoupleName] = useState<string>(getInitialCoupleName());
   const [relationshipTime, setRelationshipTime] = useState<string>("");
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
+  function getInitialCoupleName(): string {
+    const name = localStorage.getItem("coupleName");
+
+    //return name ?? "";
+    if (name) {
+      return name;
+    } else {
+      return "";
+    }
+  }
 
   return (
     <div

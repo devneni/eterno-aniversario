@@ -17,7 +17,6 @@ function previewImage(event: Event): void {
       if (e.target && typeof e.target.result === "string") {
         previewImageElement.src = e.target.result;
 
-        // Exibe a imagem e esconde o placeholder
         previewImageElement.classList.remove("hidden");
         placeholderText.classList.add("hidden");
       }
