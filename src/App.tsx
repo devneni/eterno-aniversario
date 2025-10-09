@@ -9,6 +9,7 @@ import LovePageForm from "./components/LovePageForm";
 function App() {
   const [coupleName, setCoupleName] = useState<string>("");
   const [relationshipTime, setRelationshipTime] = useState<string>("");
+  const [CoupleMessage, setCoupleMessage] = useState<string>("");
 
   return (
     <div
@@ -39,14 +40,20 @@ function App() {
             <LovePageForm
               coupleName={coupleName}
               setCoupleName={setCoupleName}
-              relationshipTime={relationshipTime} // 🆕 PASSA O TEMPO
-              setRelationshipTime={setRelationshipTime} // 🆕 PASSA A FUNÇÃO
+              relationshipTime={relationshipTime}
+              setRelationshipTime={setRelationshipTime}
+              CoupleMessage={CoupleMessage}
+              setCoupleMessage={setCoupleMessage}
             />
           </div>
         </div>
 
         <div className="lg:w-2/5 flex justify-center lg:justify-end mt-10 lg:mt-0">
-          <Phone coupleName={coupleName} relationshipTime={relationshipTime} />
+          <Phone
+            coupleName={coupleName}
+            relationshipTime={relationshipTime}
+            CoupleMessage={CoupleMessage}
+          />
         </div>
       </div>
 

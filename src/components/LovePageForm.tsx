@@ -7,6 +7,8 @@ interface LovePageFormProps {
   relationshipTime: string;
   setRelationshipTime: (time: string) => void;
   setCoupleName: (name: string) => void;
+  CoupleMessage: string;
+  setCoupleMessage: (message: string) => void;
 }
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
@@ -14,6 +16,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   setCoupleName,
   relationshipTime,
   setRelationshipTime,
+  CoupleMessage,
+  setCoupleMessage,
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
@@ -36,7 +40,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     let months = today.getMonth() - start.getMonth();
     let days = today.getDate() - start.getDate();
 
-    // Ajustes para valores negativos
     if (days < 0) {
       months--;
       const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
@@ -58,7 +61,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     setRelationshipTime(result);
   };
 
-  // 🆕 🆕 🆕 ADICIONE ESTE USEEFFECT 🆕 🆕 🆕
   useEffect(() => {
     calculateRelationshipTime();
   }, [startDate]);
@@ -123,12 +125,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           placeholder="Declare seu amor com uma mensagem especial."
           rows={3}
           className={inputClass}
+          value={CoupleMessage}
+          onChange={(e) => setCoupleMessage(e.target.value)}
         ></textarea>
 
         {selectedPlan.music && (
           <div className="space-y-4">
             <input
-              type="text"
+              type="link"
               placeholder="Link do Youtube (opcional)"
               className={inputClass}
             />
