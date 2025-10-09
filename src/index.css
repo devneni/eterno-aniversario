@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap");
+
+.esconde-scroll {
+  /* Chrome, Safari, Opera */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.esconde-scroll::-webkit-scrollbar {
+  display: none;
+}

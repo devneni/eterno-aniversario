@@ -6,7 +6,7 @@ interface PropsPhone {
 
 function Phone({ coupleName, relationshipTime, CoupleMessage }: PropsPhone) {
   return (
-    <div className="border-12 p-4 w-[300px] rounded-[45px] mt-50 border-[#484d52] h-150">
+    <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto  esconde-scroll">
       <div className="w-[200px] h-[300px] mx-auto ">
         <label
           htmlFor="file-upload-input"
@@ -21,7 +21,7 @@ function Phone({ coupleName, relationshipTime, CoupleMessage }: PropsPhone) {
           className="hidden"
         />
       </div>
-      <p className="text-[#ff6969]  text-[20px] text-center font-serif mt-5">
+      <p className="text-[#ff6969]  text-[20px] text-center font-serif mt-5 break-all ">
         {coupleName}
       </p>
       <p className="text-white text-center mt-2 font-serif text-[24px]">
@@ -32,7 +32,7 @@ function Phone({ coupleName, relationshipTime, CoupleMessage }: PropsPhone) {
           {relationshipTime}
         </p>
       )}
-      <p className="text-white text-center font-semibold text-[15px]">
+      <p className="text-white text-center font-semibold text-[15px] break-all ">
         "{CoupleMessage}"
       </p>
     </div>
