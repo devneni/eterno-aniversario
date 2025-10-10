@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Header from "./components/Header";
 import FAQSection from "./components/FAQSection";
@@ -11,6 +12,7 @@ function App() {
   const [relationshipTime, setRelationshipTime] = useState<string>("");
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
+  const [youtubeLink, setYoutubeLink] = useState<string>("");
 
   function getInitialCoupleName(): string {
     const name = localStorage.getItem("coupleName");
@@ -50,7 +52,10 @@ function App() {
               CoupleMessage={CoupleMessage}
               setCoupleMessage={setCoupleMessage}
               files={files}              
-              setFiles={setFiles}        
+              setFiles={setFiles}
+              youtubeLink={youtubeLink}
+              setYoutubeLink={setYoutubeLink}
+                      
             />
           </div>
         </div>
@@ -62,6 +67,8 @@ function App() {
             CoupleMessage={CoupleMessage}
             files={files}
             setFiles={setFiles}
+            youtubeLink={youtubeLink}
+            setYoutubeLink={setYoutubeLink}
           />
         </div>
       </div>

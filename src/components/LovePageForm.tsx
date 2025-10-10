@@ -11,6 +11,8 @@ interface LovePageFormProps {
   setCoupleMessage: (message: string) => void;
   files: File[];
   setFiles: (files: File[]) => void;
+  youtubeLink: string;
+  setYoutubeLink: (link: string) => void;
 }
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
@@ -21,19 +23,35 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   setCoupleMessage,
   files,
   setFiles, 
+  youtubeLink,
+  setYoutubeLink
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
   const [selectedPlanId, setSelectedPlanId] =
-    useState<Plan["id"]>(initialPlanId);
+  useState<Plan["id"]>(initialPlanId);
   const [startDate, setStartDate] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
+useEffect(() => {
+  const savedName = localStorage.getItem("coupleName");
+  const savedMessage = localStorage.getItem("CoupleMessage");
+  const savedLink = localStorage.getItem("youtubeLink");
+  const savedDate = localStorage.getItem("startDate");
+
+  if (savedName) setCoupleName(savedName);
+  if (savedMessage) setCoupleMessage(savedMessage);
+  if (savedLink) setYoutubeLink(savedLink);
+  if (savedDate) setStartDate(savedDate);
+}, []);
+
 
   function handleChangeName(name: string) {
     setCoupleName(name);
     localStorage.setItem("coupleName", name);
   }
+
+  
 
   const calculateRelationshipTime = () => {
     if (!startDate) {
@@ -72,6 +90,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   useEffect(() => {
     calculateRelationshipTime();
   }, [startDate]);
+
+  useEffect(() => {
+  localStorage.setItem("coupleName", coupleName);
+  localStorage.setItem("CoupleMessage", CoupleMessage);
+  localStorage.setItem("youtubeLink", youtubeLink);
+  localStorage.setItem("startDate", startDate);
+}, [coupleName, CoupleMessage, youtubeLink, startDate]);
+
 
   if (!selectedPlan) return null;
 
@@ -144,6 +170,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
               type="link"
               placeholder="Link do Youtube (opcional)"
               className={inputClass}
+              value={youtubeLink}
+              onChange={(e) => setYoutubeLink(e.target.value)}
             />
 
             <div>

@@ -6,6 +6,25 @@ interface PropsPhone {
   CoupleMessage: string;
   files?: File[];
   setFiles?: (files: File[]) => void;
+  youtubeLink: string;
+}
+
+// 🔧 Corrigido: faltava fechar corretamente a função e remover vírgula fora do lugar
+function convertYoutubeLink(link: string): string {
+  try {
+    const url = new URL(link);
+    if (url.hostname.includes("youtube.com")) {
+      const videoId = url.searchParams.get("v");
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.hostname === "youtu.be") {
+      const videoId = url.pathname.substring(1);
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return "";
+  } catch {
+    return "";
+  }
 }
 
 function Phone({
@@ -14,10 +33,10 @@ function Phone({
   CoupleMessage,
   files = [],
   setFiles,
+  youtubeLink, // ✅ adicionado nas props do componente
 }: PropsPhone) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  
   useEffect(() => {
     if (files.length > 0) setCurrentIndex(0);
   }, [files]);
@@ -44,7 +63,6 @@ function Phone({
   return (
     <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll">
       <div className="relative w-[200px] h-[300px] mx-auto rounded-[30px] overflow-hidden">
-
         {files.length > 0 ? (
           <>
             <img
@@ -56,7 +74,6 @@ function Phone({
 
             {files.length > 1 && (
               <>
-           
                 <button
                   onClick={handlePrev}
                   className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/40 text-white px-2 py-1 rounded-full hover:bg-black/60"
@@ -87,12 +104,9 @@ function Phone({
           <label
             htmlFor="file-upload-input"
             className="w-full h-full rounded-[30px] cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969]"
-          >
-       
-          </label>
+          ></label>
         )}
 
-        
         <input
           id="file-upload-input"
           onChange={handleSelectFiles}
@@ -117,6 +131,21 @@ function Phone({
       <p className="text-white text-center font-semibold text-[15px] break-all">
         "{CoupleMessage}"
       </p>
+
+      {youtubeLink && (
+        <div className="mt-4 w-full flex justify-center">
+          <iframe
+            width="100%"
+            height="200"
+            src={`${convertYoutubeLink(youtubeLink)}?autoplay=1`}
+            title="YouTube video"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-lg"
+          ></iframe>
+        </div>
+      )}
     </div>
   );
 }
