@@ -10,6 +10,8 @@ function App() {
   const [coupleName, setCoupleName] = useState<string>(getInitialCoupleName());
   const [relationshipTime, setRelationshipTime] = useState<string>("");
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
+  const [files, setFiles] =useState<File[]>([]);
+
   function getInitialCoupleName(): string {
     const name = localStorage.getItem("coupleName");
 
@@ -63,6 +65,9 @@ function App() {
             coupleName={coupleName}
             relationshipTime={relationshipTime}
             CoupleMessage={CoupleMessage}
+            files={files}
+            setFiles={setFiles}
+
           />
         </div>
       </div>

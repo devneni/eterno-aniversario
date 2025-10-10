@@ -12,13 +12,13 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
     <div
       onClick={() => onSelect(plan.id)}
       className={`
-        relative p-4 rounded-xl cursor-pointer transition-all duration-300
+        relative p-4 rounded-xl cursor-pointer transition-all duration-300 mx-4 
         ${
           isSelected
-            ? "border-2 border-[#ff6969] bg-red-500/10"
-            : "border border-gray-700 bg-white"
+            ? "border-4 border-[#ff6969] bg-red-500/10 scale-120 text-[#ff6969]" 
+            : "border-4 border-[#ff6969] bg-[white]"
         }
-        ${plan.id === "eternal" ? "text-white bg-red-600/20" : "text-white"}
+        ${plan.id === "eternal" ? "text-black " : "text-black"}
       `}
     >
       {plan.preferred && (
@@ -28,7 +28,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
       )}
       <div
         className={`text-center p-2 rounded-lg ${
-          plan.id === "eternal" ? "bg-[#ff6969]" : "bg-[#ff6969]"
+          plan.id === "eternal" ? "bg-[white]" : "bg-[white]"
         }`}
       >
         <h3 className="text-lg font-bold">{plan.title}</h3>
