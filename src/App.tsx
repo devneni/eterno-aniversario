@@ -10,30 +10,23 @@ function App() {
   const [coupleName, setCoupleName] = useState<string>(getInitialCoupleName());
   const [relationshipTime, setRelationshipTime] = useState<string>("");
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
-  const [files, setFiles] =useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   function getInitialCoupleName(): string {
     const name = localStorage.getItem("coupleName");
-
-    //return name ?? "";
-    if (name) {
-      return name;
-    } else {
-      return "";
-    }
+    return name ?? "";
   }
 
   return (
     <div
-      className="    
-          bg-[#121212] 
-          bg-[url('/background.png')]
-          bg-repeat
-          bg-[size:40px_40px]
-          bg-pad
-          min-h-screen 
-          w-full 
-          relative"
+      className="
+        bg-[#121212] 
+        bg-[url('/background.png')]
+        bg-repeat
+        bg-[size:40px_40px]
+        min-h-screen 
+        w-full 
+        relative"
     >
       <Header />
       <div className="flex flex-col lg:flex-row w-full max-w-7xl mx-auto p-4">
@@ -56,6 +49,8 @@ function App() {
               setRelationshipTime={setRelationshipTime}
               CoupleMessage={CoupleMessage}
               setCoupleMessage={setCoupleMessage}
+              files={files}              
+              setFiles={setFiles}        
             />
           </div>
         </div>
@@ -67,7 +62,6 @@ function App() {
             CoupleMessage={CoupleMessage}
             files={files}
             setFiles={setFiles}
-
           />
         </div>
       </div>

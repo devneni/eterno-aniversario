@@ -11,16 +11,16 @@ function Footer() {
       </footer>
       <div className="flex justify-center mt-2 space-x-4">
         <a href="https://www.tiktok.com/@eternoaniversario" target="_blank">
-          <AiFillTikTok className="w-[80px] h-[40px] text-white" />
+          <AiFillTikTok className="w-[80px] h-[40px] text-white hover:scale-150" />
         </a>
         <a
           href="https://api.whatsapp.com/send/?phone=554788617240&text&type=phone_number&app_absent=0"
           target="_blank"
         >
-          <FaWhatsappSquare className="w-[80px] h-[40px] text-white" />
+          <FaWhatsappSquare className="w-[80px] h-[40px] text-white hover:scale-150" />
         </a>
-        <a href="mailto: eternoaniversario@gmail.com" target="_blank">
-          <ImMail className="w-[80px] h-[40px] text-white" />
+        <a href="mailto: eternoaniversario@gmail.com" target="_blank ">
+          <ImMail className="w-[80px] h-[40px] text-white hover:scale-150" />
         </a>
       </div>
     </div>

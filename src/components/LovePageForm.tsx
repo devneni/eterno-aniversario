@@ -9,28 +9,29 @@ interface LovePageFormProps {
   setCoupleName: (name: string) => void;
   CoupleMessage: string;
   setCoupleMessage: (message: string) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
 }
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
   coupleName,
   setCoupleName,
-
   setRelationshipTime,
   CoupleMessage,
   setCoupleMessage,
+  files,
+  setFiles, 
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
   const [selectedPlanId, setSelectedPlanId] =
     useState<Plan["id"]>(initialPlanId);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [startDate, setStartDate] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
 
   function handleChangeName(name: string) {
     setCoupleName(name);
-    // Deve salvar a string nome no cache local do navegador
     localStorage.setItem("coupleName", name);
   }
 
@@ -77,12 +78,12 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   const inputClass =
     "w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition duration-200";
 
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const filesArray = Array.from(files).slice(0, selectedPlan.photos);
-      setSelectedFiles(filesArray);
-    }
+    const newFiles = event.target.files
+      ? Array.from(event.target.files).slice(0, selectedPlan.photos)
+      : [];
+    setFiles(newFiles); 
   };
 
   const handleButtonClick = () => {
@@ -101,6 +102,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           />
         ))}
       </div>
+
       <div className="max-w-xl mx-auto space-y-6">
         <input
           id="teste"
@@ -160,6 +162,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           </div>
         )}
 
+
         <input
           type="file"
           ref={fileInputRef}
@@ -187,20 +190,15 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
             />
           </svg>
           <span>
-            {selectedFiles.length > 0
-              ? `${selectedFiles.length} imagens selecionadas`
+            {files.length > 0
+              ? `${files.length} imagem${files.length > 1 ? "s" : ""} selecionada${files.length > 1 ? "s" : ""}`
               : `Selecione até ${selectedPlan.photos} imagens`}
           </span>
         </button>
 
-        {selectedFiles.length > 0 && (
-          <p className="text-sm text-gray-400">
-            Imagens prontas para envio:{" "}
-            {selectedFiles.map((f) => f.name).join(", ")}
-          </p>
-        )}
+        {files.length > 0 && (0)}
 
-        <button className="w-full py-4 bg-[#ff6969] hover:bg-[#ff6969] text-white font-bold rounded-lg transition duration-200 text-xl">
+        <button className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl">
           Crie Sua Página Agora!
         </button>
       </div>
