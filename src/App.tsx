@@ -13,6 +13,10 @@ function App() {
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
   const [youtubeLink, setYoutubeLink] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [email, setEmail] = useState<string>(""); 
+  const [startDate, setStartDate] = useState<string>(""); // ← ADICIONE ESTA LINHA
+ 
 
   function getInitialCoupleName(): string {
     const name = localStorage.getItem("coupleName");
@@ -55,6 +59,13 @@ function App() {
               setFiles={setFiles}
               youtubeLink={youtubeLink}
               setYoutubeLink={setYoutubeLink}
+              startTime={startTime} 
+              setStartTime={setStartTime}
+              email={email} 
+              setEmail={setEmail} 
+              startDate={startDate} 
+              setStartDate={setStartDate} 
+              
                       
             />
           </div>
@@ -68,7 +79,8 @@ function App() {
             files={files}
             setFiles={setFiles}
             youtubeLink={youtubeLink}
-            setYoutubeLink={setYoutubeLink}
+            
+            
           />
         </div>
       </div>

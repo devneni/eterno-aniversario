@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import PlanCard from "./PlanCard";
 import { plansData, type Plan } from "./plansData";
+import { 
+  convertFilesToDataUrls, 
+  saveImagesToStorage, 
+  getImagesFromStorage 
+} from "./imageStorage";
 
 interface LovePageFormProps {
   coupleName: string;
@@ -13,7 +18,109 @@ interface LovePageFormProps {
   setFiles: (files: File[]) => void;
   youtubeLink: string;
   setYoutubeLink: (link: string) => void;
+  startTime: string; 
+  setStartTime: (time: string) => void; 
+  startDate: string;
+  setStartDate: (date: string) => void;
+  email: string; 
+  setEmail: (email: string) => void; 
 }
+
+
+const calculateRelationshipTime = (startDate: string, startTime: string): string => {
+  
+  if (!startDate) {
+    return "";
+  }
+
+  const startDateTime = new Date(startDate);
+  const today = new Date();
+
+  
+  if (startTime) {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    startDateTime.setHours(hours, minutes, 0, 0);
+  } else {
+    startDateTime.setHours(0, 0, 0, 0);
+  }
+
+  if (isNaN(startDateTime.getTime())) {
+    return "";
+  }
+
+  let years = today.getFullYear() - startDateTime.getFullYear();
+  let months = today.getMonth() - startDateTime.getMonth();
+  let days = today.getDate() - startDateTime.getDate();
+
+
+  if (days < 0) {
+    months--;
+  
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    days += lastDayOfMonth;
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  if (startTime) {
+    let hours = today.getHours() - startDateTime.getHours();
+    let minutes = today.getMinutes() - startDateTime.getMinutes();
+    let seconds = today.getSeconds() - startDateTime.getSeconds();
+
+    
+    if (seconds < 0) {
+      minutes--;
+      seconds += 60;
+    }
+
+    if (minutes < 0) {
+      hours--;
+      minutes += 60;
+    }
+
+
+    if (hours < 0) {
+      days--;
+      hours += 24;
+      
+  
+      if (days < 0) {
+        months--;
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+        days += lastDayOfMonth;
+        
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+      }
+    }
+
+   
+    const parts = [];
+    
+    if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
+    if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
+    if (days > 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
+    if (hours > 0) parts.push(`${hours} hora${hours > 1 ? 's' : ''}`);
+    if (minutes > 0) parts.push(`${minutes} minuto${minutes > 1 ? 's' : ''}`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds} segundo${seconds > 1 ? 's' : ''}`);
+
+    return parts.length > 0 ? parts.join(", ") : "0 segundos";
+  } else {
+   
+    const parts = [];
+    
+    if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
+    if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
+    if (days > 0 || parts.length === 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
+
+    return parts.join(", ");
+  }
+};
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
   coupleName,
@@ -24,97 +131,96 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   files,
   setFiles, 
   youtubeLink,
-  setYoutubeLink
+  setYoutubeLink,
+  startTime,
+  setStartTime,  
+  startDate,
+  setStartDate,
+  email,
+  setEmail
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
-  const [selectedPlanId, setSelectedPlanId] =
-  useState<Plan["id"]>(initialPlanId);
-  const [startDate, setStartDate] = useState<string>("");
+  const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(initialPlanId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
-useEffect(() => {
-  const savedName = localStorage.getItem("coupleName");
-  const savedMessage = localStorage.getItem("CoupleMessage");
-  const savedLink = localStorage.getItem("youtubeLink");
-  const savedDate = localStorage.getItem("startDate");
+  const [savedImages, setSavedImages] = useState<string[]>([]);
 
-  if (savedName) setCoupleName(savedName);
-  if (savedMessage) setCoupleMessage(savedMessage);
-  if (savedLink) setYoutubeLink(savedLink);
-  if (savedDate) setStartDate(savedDate);
-}, []);
+  
+  useEffect(() => {
+    const savedName = localStorage.getItem("coupleName");
+    const savedMessage = localStorage.getItem("CoupleMessage");
+    const savedLink = localStorage.getItem("youtubeLink");
+    const savedDate = localStorage.getItem("startDate");
+    const savedTime = localStorage.getItem("startTime"); 
+    const savedEmail = localStorage.getItem("email");
+    
+    const storedImages = getImagesFromStorage();
+    setSavedImages(storedImages);
 
+    if (savedName) setCoupleName(savedName);
+    if (savedMessage) setCoupleMessage(savedMessage);
+    if (savedLink) setYoutubeLink(savedLink);
+    if (savedDate) setStartDate(savedDate);
+    if (savedTime) setStartTime(savedTime); 
+    if (savedEmail) setEmail(savedEmail);
+  }, [setCoupleName, setCoupleMessage, setYoutubeLink, setStartTime, setStartDate, setEmail]);
 
   function handleChangeName(name: string) {
     setCoupleName(name);
     localStorage.setItem("coupleName", name);
   }
 
-  
-
-  const calculateRelationshipTime = () => {
-    if (!startDate) {
-      setRelationshipTime("");
-      return;
-    }
-
-    const start = new Date(startDate);
-    const today = new Date();
-
-    let years = today.getFullYear() - start.getFullYear();
-    let months = today.getMonth() - start.getMonth();
-    let days = today.getDate() - start.getDate();
-
-    if (days < 0) {
-      months--;
-      const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-      days += lastMonth.getDate();
-    }
-
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-
-    const parts = [];
-    if (years > 0) parts.push(`${years} ano${years > 1 ? "s" : ""}`);
-    if (months > 0) parts.push(`${months} mês${months > 1 ? "es" : ""}`);
-    if (days > 0 || parts.length === 0)
-      parts.push(`${days} dia${days > 1 ? "s" : ""}`);
-
-    const result = parts.join(", ");
-    setRelationshipTime(result);
+  const updateRelationshipTime = () => {
+    const time = calculateRelationshipTime(startDate, startTime);
+    setRelationshipTime(time);
   };
 
   useEffect(() => {
-    calculateRelationshipTime();
-  }, [startDate]);
+    updateRelationshipTime();
+    
+
+    const intervalTime = startTime ? 1000 : 60000; 
+    const interval = setInterval(updateRelationshipTime, intervalTime);
+    
+    return () => clearInterval(interval);
+  }, [startDate, startTime]);
 
   useEffect(() => {
-  localStorage.setItem("coupleName", coupleName);
-  localStorage.setItem("CoupleMessage", CoupleMessage);
-  localStorage.setItem("youtubeLink", youtubeLink);
-  localStorage.setItem("startDate", startDate);
-}, [coupleName, CoupleMessage, youtubeLink, startDate]);
+    localStorage.setItem("coupleName", coupleName);
+    localStorage.setItem("CoupleMessage", CoupleMessage);
+    localStorage.setItem("youtubeLink", youtubeLink);
+    localStorage.setItem("startDate", startDate);
+    localStorage.setItem("startTime", startTime);
+    localStorage.setItem("email", email);
+  }, [coupleName, CoupleMessage, youtubeLink, startDate, startTime, email]);
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && setFiles) {
+      const filesArray = Array.from(event.target.files).slice(0, selectedPlan?.photos || 5);
+      
+      
+      setFiles(filesArray);
+      
 
-  if (!selectedPlan) return null;
-
-  const inputClass =
-    "w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition duration-200";
-
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newFiles = event.target.files
-      ? Array.from(event.target.files).slice(0, selectedPlan.photos)
-      : [];
-    setFiles(newFiles); 
+      try {
+        const dataUrls = await convertFilesToDataUrls(filesArray);
+        saveImagesToStorage(dataUrls);
+        setSavedImages(dataUrls);
+      } catch (error) {
+        console.error("Erro ao salvar imagens:", error);
+      }
+    }
   };
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
+
+  if (!selectedPlan) return null;
+
+  const inputClass =
+    "w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition duration-200";
 
   return (
     <div className="bg-[#121212] min-h-screen p-8 text-white font-sans">
@@ -131,7 +237,6 @@ useEffect(() => {
 
       <div className="max-w-xl mx-auto space-y-6">
         <input
-          id="teste"
           type="text"
           placeholder="Nome do casal"
           className={inputClass}
@@ -151,10 +256,18 @@ useEffect(() => {
             type="time"
             placeholder="Hora e minuto (opcional)"
             className={`${inputClass} w-1/2`}
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
           />
         </div>
 
-        <input type="email" placeholder="Seu e-mail" className={inputClass} />
+        <input 
+          type="email" 
+          placeholder="Seu e-mail" 
+          className={inputClass}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
         <textarea
           placeholder="Declare seu amor com uma mensagem especial."
@@ -167,7 +280,7 @@ useEffect(() => {
         {selectedPlan.music && (
           <div className="space-y-4">
             <input
-              type="link"
+              type="text"
               placeholder="Link do Youtube (opcional)"
               className={inputClass}
               value={youtubeLink}
@@ -180,6 +293,7 @@ useEffect(() => {
                 {selectedPlan.musicTips?.map((tip, index) => (
                   <button
                     key={index}
+                    type="button"
                     className="px-3 py-1 bg-gray-700 text-sm rounded-full hover:bg-[#ff6969] transition duration-200"
                   >
                     {tip}
@@ -189,7 +303,6 @@ useEffect(() => {
             </div>
           </div>
         )}
-
 
         <input
           type="file"
@@ -201,6 +314,7 @@ useEffect(() => {
         />
 
         <button
+          type="button"
           onClick={handleButtonClick}
           className="w-full py-4 mt-6 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center space-x-2"
         >
@@ -218,15 +332,16 @@ useEffect(() => {
             />
           </svg>
           <span>
-            {files.length > 0
-              ? `${files.length} imagem${files.length > 1 ? "s" : ""} selecionada${files.length > 1 ? "s" : ""}`
+            {files.length > 0 || savedImages.length > 0
+              ? `${files.length || savedImages.length} imagem${(files.length || savedImages.length) > 1 ? "s" : ""} selecionada${(files.length || savedImages.length) > 1 ? "s" : ""}`
               : `Selecione até ${selectedPlan.photos} imagens`}
           </span>
         </button>
 
-        {files.length > 0 && (0)}
-
-        <button className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl">
+        <button 
+          type="button"
+          className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl"
+        >
           Crie Sua Página Agora!
         </button>
       </div>

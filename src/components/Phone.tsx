@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getImagesFromStorage } from "./imageStorage";
 
 interface PropsPhone {
   coupleName: string;
@@ -9,7 +10,6 @@ interface PropsPhone {
   youtubeLink: string;
 }
 
-// 🔧 Corrigido: faltava fechar corretamente a função e remover vírgula fora do lugar
 function convertYoutubeLink(link: string): string {
   try {
     const url = new URL(link);
@@ -33,23 +33,33 @@ function Phone({
   CoupleMessage,
   files = [],
   setFiles,
-  youtubeLink, // ✅ adicionado nas props do componente
+  youtubeLink,
 }: PropsPhone) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [savedImages, setSavedImages] = useState<string[]>([]);
+
 
   useEffect(() => {
-    if (files.length > 0) setCurrentIndex(0);
-  }, [files]);
+    const storedImages = getImagesFromStorage();
+    setSavedImages(storedImages);
+  }, []);
+
+  useEffect(() => {
+    const totalImages = files.length > 0 ? files.length : savedImages.length;
+    if (totalImages > 0) setCurrentIndex(0);
+  }, [files, savedImages]);
 
   const handleNext = () => {
-    if (files.length > 0) {
-      setCurrentIndex((prev) => (prev + 1) % files.length);
+    const totalImages = files.length > 0 ? files.length : savedImages.length;
+    if (totalImages > 0) {
+      setCurrentIndex((prev) => (prev + 1) % totalImages);
     }
   };
 
   const handlePrev = () => {
-    if (files.length > 0) {
-      setCurrentIndex((prev) => (prev - 1 + files.length) % files.length);
+    const totalImages = files.length > 0 ? files.length : savedImages.length;
+    if (totalImages > 0) {
+      setCurrentIndex((prev) => (prev - 1 + totalImages) % totalImages);
     }
   };
 
@@ -60,19 +70,26 @@ function Phone({
     }
   };
 
+
+  const imagesToDisplay = files.length > 0 
+    ? files.map(file => URL.createObjectURL(file))
+    : savedImages;
+
+  const totalImages = imagesToDisplay.length;
+
   return (
     <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll">
       <div className="relative w-[200px] h-[300px] mx-auto rounded-[30px] overflow-hidden">
-        {files.length > 0 ? (
+        {totalImages > 0 ? (
           <>
             <img
               key={currentIndex}
-              src={URL.createObjectURL(files[currentIndex])}
+              src={imagesToDisplay[currentIndex]}
               alt={`Imagem ${currentIndex + 1}`}
               className="w-full h-full object-cover rounded-[30px] transition-all duration-500"
             />
 
-            {files.length > 1 && (
+            {totalImages > 1 && (
               <>
                 <button
                   onClick={handlePrev}
@@ -88,7 +105,7 @@ function Phone({
                 </button>
 
                 <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-2">
-                  {files.map((_, i) => (
+                  {imagesToDisplay.map((_, i) => (
                     <span
                       key={i}
                       className={`w-2 h-2 rounded-full ${
@@ -123,17 +140,15 @@ function Phone({
       <p className="text-white text-center mt-2 font-serif text-[24px]">
         Estão juntos há
       </p>
-      {relationshipTime && (
-        <p className="text-white text-center text-lg font-bold text-[18px]">
-          {relationshipTime}
-        </p>
-      )}
+      <p className="text-white text-center text-lg font-bold text-[14px] mb-2">
+        {relationshipTime}
+      </p>
       <p className="text-white text-center font-semibold text-[15px] break-all">
         "{CoupleMessage}"
       </p>
 
       {youtubeLink && (
-        <div className="mt-4 w-full flex justify-center">
+        <div className="mt-4 w-full flex justify-center hover:border-[#ff6969] border-4 rounded-lg">
           <iframe
             width="100%"
             height="200"

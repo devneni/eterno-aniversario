@@ -9,7 +9,7 @@ interface PlanCardProps {
 
 const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
   return (
-    <div
+    <div 
       onClick={() => onSelect(plan.id)}
       className={`
         relative p-4 rounded-xl cursor-pointer transition-all duration-300 mx-4 
