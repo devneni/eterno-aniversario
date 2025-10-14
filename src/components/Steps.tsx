@@ -82,10 +82,12 @@ function Steps() {
           Dúvidas? me chame no WhatsApp
         </a>
       </div>
+<p className="text-center font-bold  text-3xl mt-12 mb-12 text-[#ff6969]">
 
-      <p className="text-center font-bold text-[#f1acb7] text-3xl mt-12 mb-8">
-        Perguntas Frequentes (FAQ)
-      </p>
+Perguntas Frequentes (FAQ)
+
+ </p>
+ 
     </>
   );
 }

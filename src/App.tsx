@@ -37,16 +37,19 @@ function App() {
       <Header />
       <div className="flex flex-col lg:flex-row w-full max-w-7xl mx-auto p-4">
         <div className="lg:w-3/5">
-          <h1 className="text-[#ff6969] text-3xl md:text-5xl font-bold mt-6 text-left">
-            Crie momentos inesquecíveis
+            <h1 className="text-5xl md:text-7xl font-extrabold mt-6 text-left bg-clip-text text-transparent bg-gradient-to-r from-[#ff8c8c] to-[#ff3333]">Crie momentos inesquecíveis
           </h1>
 
-          <p className="text-white mt-6 mb-8 text-left font-semibold text-base">
-            Registre o tempo do seu relacionamento em um site personalizado.{" "}
-            <br /> Preencha o formulário e compartilhe com seu amor através de
-            um QR Code especial.
+          <p className="mt-6 mb-8 text-left text-lg md:text-xl font-light text-gray-300">
+            Registre o tempo do seu relacionamento em um site personalizado.
+            <br />
+            Preencha o formulário e compartilhe com seu amor através de um{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ff8c8c] to-[#ff3333] font-medium drop-shadow-sm">
+              QR Code especial
+            </span>
+            .
           </p>
-
+         
           <div className="mt-8">
             <LovePageForm
               coupleName={coupleName}

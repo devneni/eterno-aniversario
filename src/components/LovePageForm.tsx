@@ -6,6 +6,8 @@ import {
   saveImagesToStorage, 
   getImagesFromStorage 
 } from "./imageStorage";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
 interface LovePageFormProps {
   coupleName: string;
@@ -339,11 +341,33 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         </button>
 
         <button 
-          type="button"
-          className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl"
-        >
-          Crie Sua Página Agora!
-        </button>
+  type="button"
+  onClick={async () => {
+    try {
+      
+      await addDoc(collection(db, "paginas"), {
+        nomeDoCasal: coupleName,
+        mensagem: CoupleMessage,
+        youtubeLink,
+        dataInicio: startDate,
+        horarioInicio: startTime,
+        tempoDeRelacionamento: calculateRelationshipTime(startDate, startTime),
+        email,
+        planoSelecionado: selectedPlan?.title || "",
+        imagens: savedImages, 
+        criadoEm: new Date()
+      });
+
+      alert("Página criada com sucesso! ");
+    } catch (error) {
+      console.error("Erro ao criar página:", error);
+      alert("Erro ao salvar sua página, confira seus dados");
+    }
+  }}
+  className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl"
+>
+  Crie Sua Página Agora!
+</button>
       </div>
     </div>
   );
