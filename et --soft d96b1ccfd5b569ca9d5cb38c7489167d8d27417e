@@ -1,0 +1,83 @@
+[33mcommit d96b1ccfd5b569ca9d5cb38c7489167d8d27417e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Tue Oct 14 17:55:01 2025 -0300
+
+    integração firebase e requests
+
+[33mcommit af45eec53a00e23fec399b7522ca0ca37588743f[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Tue Oct 14 14:27:41 2025 -0300
+
+    intengração firebase e guardar valores no banco de dados
+
+[33mcommit 8df59ced269f78aafaa871b9a81b80fb610426a0[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Fri Oct 10 15:06:50 2025 -0300
+
+    estilização e adição de segundos
+
+[33mcommit b015f0a70ac4ceb2ef8510945db5b5fcd8db37ac[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Fri Oct 10 10:43:43 2025 -0300
+
+    salva campo data,mensagem no storage do navegador, tambem o url do youtube foi passado para dento da div phone
+
+[33mcommit 545bc0373d7cabe2e4f90fa35509f8087a4a863d[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Thu Oct 9 23:20:49 2025 -0300
+
+    adição de efeito carrosel e hover scale no contra pé do site
+
+[33mcommit 7486fc93e75cc5a40e712dcd376dbc2c40de8595[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Thu Oct 9 22:44:00 2025 -0300
+
+    imagem fica no lugar de upload caso seja carregada
+
+[33mcommit 124c6cb3ae007274731042c74ca39b5022224c5a[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Thu Oct 9 16:36:32 2025 -0300
+
+    salva o campo nome no cache do navegador
+
+[33mcommit 21d5d93900d284bac91baed7060e759e96ec409b[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Thu Oct 9 14:25:17 2025 -0300
+
+    adição de scroll no caso de caracteres do nome do casal ou da mensagem excedida
+
+[33mcommit 1a0082fba17b9b90372e989dacd86e17eaf38999[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Thu Oct 9 13:57:37 2025 -0300
+
+    mudanças na interface
+
+[33mcommit 74a3a8977aa2fa5b7381dc20d1ea241ca2ee96d8[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Wed Oct 8 16:20:57 2025 -0300
+
+    interface dinamica, que atualiza de acordo com o nome do casal e o tempo de relacionamento
+
+[33mcommit 8511c4aacb2cd20aa73b1048b38b2ba689158f7e[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Tue Oct 7 18:44:07 2025 -0300
+
+    Estilização e adição de formas de contato
+
+[33mcommit e07eaeb2aff365f5eede8545555905f76e125243[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Tue Oct 7 11:55:32 2025 -0300
+
+    preços estilizados
+
+[33mcommit 3f6d2da81b6ee2c492a0e996eadab162cd74c34c[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Tue Oct 7 11:32:40 2025 -0300
+
+    criação de componententes
+
+[33mcommit 882206f9dbb499fcfa599a7ee5af244a38858941[m
+Author: devneni <maninhoblue6262@gmail.c>
+Date:   Mon Oct 6 16:23:00 2025 -0300
+
+    feat: configuracao inicial do tailwind e correcao do index.tsx

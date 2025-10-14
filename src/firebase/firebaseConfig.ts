@@ -1,23 +1,24 @@
-// Importa os módulos necessários
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // 👈 Import Firestore
-import { getAnalytics } from "firebase/analytics";
+
+import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore"; 
+
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAjhOFJQJIRIJMtxihkmhJMPpnJdMAuoBw",
-  authDomain: "eterno-aniversario-react.firebaseapp.com",
-  projectId: "eterno-aniversario-react",
-  storageBucket: "eterno-aniversario-react.firebasestorage.app",
-  messagingSenderId: "181216533467",
-  appId: "1:181216533467:web:205a280a4c10325e2265fe",
-  measurementId: "G-BVH5KMGDH2",
+    apiKey: "AIzaSyAjhOFJQJIRIJMtxihkmhJMPpnJdMAuoBw",
+    authDomain: "eterno-aniversario-react.firebaseapp.com",
+    projectId: "eterno-aniversario-react",
+    storageBucket: "eterno-aniversario-react.firebasestorage.app",
+    messagingSenderId: "181216533467",
+    appId: "1:181216533467:web:205a280a4c10325e2265fe",
+    measurementId: "G-BVH5KMGDH2",
 };
 
-// Inicializa o Firebase
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Inicializa o Analytics (opcional)
-getAnalytics(app);
+if (typeof window !== 'undefined' && app.name && !app.options.measurementId) {
+    // getAnalytics(app); // Descomente quando estiver em produção
+}
 
-// 👇 Inicializa e exporta o Firestore
 export const db = getFirestore(app);
+export const storage = getStorage(app);
