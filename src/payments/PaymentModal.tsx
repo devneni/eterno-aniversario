@@ -23,7 +23,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
  const [discountValue, setDiscountValue] = useState<number>(0);
  const [couponMessage, setCouponMessage] = useState<string>('');
 
- // Adiciona a opção de fechar a modal quando a tecla ESC é pressionada.
   React.useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -36,7 +35,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     };
   }, [onCancel]);
 
- // Calcula o valor total com desconto.
+
   const totalValue = initialPlanValue - discountValue;
 
  const handleApplyCoupon = useCallback(() => {
@@ -56,12 +55,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
  const confirmButtonText = selectedMethod === 'pix' ? 'Gerar QR Code' : 'Pagar Agora';
  
- // Classes de estilo
+
  const RadioSelectedClass = 'ring-2 ring-purple-500 border-purple-500 bg-purple-50'; 
  const RadioUnselectedClass = 'border-gray-300 hover:bg-gray-100'; 
 
  return (
-  // NOVO: Adiciona onClick={onCancel} para fechar ao clicar no fundo escuro (backdrop)
+  
   <div 
       className="fixed inset-0 bg-black/80 flex justify-center items-center z-50 p-4" 
       onClick={onCancel}
@@ -69,10 +68,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
    
    <div 
         className="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto transform transition-all scale-100"
-        // CRUCIAL: Interrompe a propagação do evento para que clicar no conteúdo NÃO feche a modal
+   
         onClick={(e) => e.stopPropagation()} 
       >
-        {/* BOTÃO 'X' PARA FECHAR NO CANTO */}
+     
         <div className='flex justify-end'>
             <button 
                 className='text-gray-400 hover:text-gray-700 transition duration-150'
@@ -109,7 +108,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      <label className="text-sm font-medium text-gray-700 mb-1 block">Cupom</label>
      <div className="flex gap-3">
       <input type="text" value={coupon} onChange={(e) => setCoupon(e.target.value)} className="flex-grow text-gray-700 p-2 border rounded-lg text-sm outline-none focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: DESCONTO10" />
-      <button className="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-150" onClick={handleApplyCoupon}>Aplicar Cupom</button>
+      <button className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150" onClick={handleApplyCoupon}>Aplicar Cupom</button>
      </div>
      {couponMessage && <p className={`mt-2 text-xs font-medium ${discountValue > 0 ? 'text-green-600' : 'text-red-500'}`}>{couponMessage}</p>}
     </div>
