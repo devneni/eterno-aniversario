@@ -64,6 +64,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     text: string;
     type: string;
   }>({ text: "", type: "" });
+  const [paymentData, setPaymentData] = useState<{
+    qrCode: string;
+    qrCodeBase64: string;
+    pixKey: string;
+    amount: number;
+    status: string;
+    paymentId?: string;
+  } | null>(null);
 
   // Carregar dados do localStorage
   useEffect(() => {
@@ -203,6 +211,70 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     return `${encoded}${randomString}`;
   }
 
+  // Função para verificar status do pagamento
+  async function checkPaymentStatus(paymentId: string) {
+    try {
+      const response = await fetch(
+        `https://api.12testadores.com/api/mercadopago_v2/payment/${paymentId}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const paymentData = await response.json();
+      const status = (paymentData.status as string) || "";
+
+      return {
+        status,
+        approved: status === "approved",
+        pending: status === "pending",
+        rejected: status === "rejected",
+      };
+    } catch (error) {
+      console.error("Erro ao verificar status do pagamento:", error);
+      return null;
+    }
+  }
+
+  // Função para extrair dados do PIX da resposta do Mercado Pago
+  function extractPixData(mercadopagoResponse: Record<string, unknown>) {
+    try {
+      const pointOfInteraction = mercadopagoResponse.point_of_interaction as
+        | Record<string, unknown>
+        | undefined;
+      const transactionData = pointOfInteraction?.transaction_data as
+        | Record<string, unknown>
+        | undefined;
+
+      const qrCode = (transactionData?.qr_code as string) || "";
+      const qrCodeBase64 = (transactionData?.qr_code_base64 as string) || "";
+      const amount = (mercadopagoResponse.transaction_amount as number) || 0;
+      const status = (mercadopagoResponse.status as string) || "";
+
+      // Extrair chave PIX do QR code (formato: 00020126490014br.gov.bcb.pix0127eternoaniversario@gmail.com...)
+      let pixKey = "";
+      if (qrCode) {
+        const pixKeyMatch = qrCode.match(/0127([^5]+)/);
+        if (pixKeyMatch) {
+          pixKey = pixKeyMatch[1];
+        }
+      }
+
+      return {
+        qrCode,
+        qrCodeBase64,
+        pixKey,
+        amount,
+        status,
+        paymentId: (mercadopagoResponse.id as string) || "",
+      };
+    } catch (error) {
+      console.error("Erro ao extrair dados do PIX:", error);
+      return null;
+    }
+  }
+
   async function createPayement(clientId: string) {
     try {
       const encryptedAmount = encryptAmount(selectedPlan?.priceDiscounted || 0);
@@ -230,6 +302,12 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
       const pixData = await pixResponse.json();
       console.log("PIX payment created:", pixData);
+
+      // Extrair dados do PIX da resposta
+      const extractedPixData = extractPixData(pixData);
+      if (extractedPixData) {
+        setPaymentData(extractedPixData);
+      }
 
       return { success: true, clientId, paymentData: pixData };
     } catch (error) {
@@ -296,7 +374,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     }
   }
 
-  async function createOnDataBase() {
+  const createOnDataBase = useCallback(async () => {
     try {
       await createLovePage(
         coupleName,
@@ -320,7 +398,53 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     } finally {
       setIsLoading(false); // Desativa o loading
     }
-  }
+  }, [
+    coupleName,
+    CoupleMessage,
+    youtubeLink,
+    startDate,
+    startTime,
+    email,
+    selectedPlan?.title,
+    files,
+  ]);
+
+  // Verificar status do pagamento periodicamente
+  useEffect(() => {
+    if (!paymentData?.paymentId || paymentData.status === "approved") {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      const statusResult = await checkPaymentStatus(paymentData.paymentId!);
+
+      if (statusResult?.approved) {
+        // Pagamento aprovado - criar página automaticamente
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: "approved" } : null
+        );
+        setPostCreationMessage({
+          text: "✅ Pagamento aprovado! Criando sua página...",
+          type: "success",
+        });
+
+        // Criar página no banco de dados
+        createOnDataBase();
+        clearInterval(interval);
+      } else if (statusResult?.rejected) {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: "rejected" } : null
+        );
+        setPostCreationMessage({
+          text: "❌ Pagamento rejeitado. Tente novamente.",
+          type: "error",
+        });
+        clearInterval(interval);
+      }
+    }, 5000); // Verifica a cada 5 segundos
+
+    return () => clearInterval(interval);
+  }, [paymentData?.paymentId, paymentData?.status, createOnDataBase]);
 
   if (!selectedPlan) return null;
 
@@ -351,6 +475,77 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
             }`}
           >
             {postCreationMessage.text}
+          </div>
+        )}
+
+        {/* DADOS DO PIX */}
+        {paymentData && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 space-y-4">
+            <h3 className="text-xl font-bold text-center text-white mb-4">
+              💳 Pagamento PIX
+            </h3>
+
+            <div className="text-center">
+              <p className="text-gray-300 mb-2">
+                Valor: R$ {paymentData.amount.toFixed(2)}
+              </p>
+              <p
+                className={`mb-4 font-medium ${
+                  paymentData.status === "approved"
+                    ? "text-green-400"
+                    : paymentData.status === "rejected"
+                    ? "text-red-400"
+                    : "text-yellow-400"
+                }`}
+              >
+                Status:{" "}
+                {paymentData.status === "approved"
+                  ? "✅ Aprovado"
+                  : paymentData.status === "rejected"
+                  ? "❌ Rejeitado"
+                  : "⏳ Aguardando Pagamento"}
+              </p>
+            </div>
+
+            {/* QR CODE */}
+            {paymentData.qrCodeBase64 && (
+              <div className="text-center">
+                <p className="text-white font-medium mb-3">
+                  Escaneie o QR Code:
+                </p>
+                <div className="bg-white p-4 rounded-lg inline-block">
+                  <img
+                    src={`data:image/png;base64,${paymentData.qrCodeBase64}`}
+                    alt="QR Code PIX"
+                    className="w-48 h-48 mx-auto"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* CHAVE PIX */}
+            {paymentData.pixKey && (
+              <div className="text-center">
+                <p className="text-white font-medium mb-3">Chave PIX:</p>
+                <div className="bg-gray-700 p-3 rounded-lg">
+                  <p className="text-green-400 font-mono text-lg break-all">
+                    {paymentData.pixKey}
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    navigator.clipboard.writeText(paymentData.pixKey)
+                  }
+                  className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
+                >
+                  📋 Copiar Chave
+                </button>
+              </div>
+            )}
+
+            <div className="text-center text-sm text-gray-400">
+              <p>Após o pagamento, sua página será criada automaticamente!</p>
+            </div>
           </div>
         )}
 
