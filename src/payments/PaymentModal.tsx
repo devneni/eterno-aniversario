@@ -112,8 +112,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      </div>
      {couponMessage && <p className={`mt-2 text-xs font-medium ${discountValue > 0 ? 'text-green-600' : 'text-red-500'}`}>{couponMessage}</p>}
     </div>
-    
-    {/* Sumário */}
+   
     <div className="bg-purple-50 p-4 rounded-lg mb-6 border border-purple-200">
           {discountValue > 0 && (
             <div className="flex justify-between text-green-600 mb-2 text-sm md:text-base">
@@ -132,7 +131,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      </div>
     </div>
 
-    {/* Botões de Ação */}
     <div className="text-center">
      <button 
       className="w-full bg-green-400 text-white font-bold py-3 rounded-lg shadow-xl hover:bg-700 transition duration-150 mb-3"
