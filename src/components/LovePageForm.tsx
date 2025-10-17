@@ -196,7 +196,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         email: email,
         userId: clientId,
       };
-
+      console.log(pixPayload);
       const pixResponse = await fetch(
         "https://api.12testadores.com/api/mercadopago_v2/create_pix",
         {
@@ -222,7 +222,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
   async function searchClientId(clientEmail: string) {
     try {
-      // 1. BUSCAR OU CRIAR CLIENTE
+      // 1. BUSCAR CLIENTE
       let response = await fetch(
         "https://api.12testadores.com/api/mercadopago_v2/search_client_id",
         {
@@ -231,11 +231,23 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           body: JSON.stringify({ email: clientEmail }),
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       let clientData = await response.json();
-      let userId = clientData.id; // Supondo que a API retorna um ID
+      console.log("Client search response:", clientData);
+
+      // Extrair o ID do cliente da estrutura correta da resposta
+      let userId = null;
+      if (clientData.results && clientData.results.length > 0) {
+        userId = clientData.results[0].id;
+      }
 
       if (!userId) {
         // Se não encontrou, cria o cliente
+        console.log("Cliente não encontrado, criando novo cliente...");
         response = await fetch(
           "https://api.12testadores.com/api/mercadopago_v2/create",
           {
@@ -245,12 +257,20 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
               email: clientEmail,
               first_name: "Nome",
               last_name: "Sobrenome",
-            }), // Adapte os dados
+            }),
           }
         );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         clientData = await response.json();
+        console.log("Client creation response:", clientData);
         userId = clientData.id;
       }
+
+      console.log("Final client ID:", userId);
       return userId;
     } catch (error) {
       console.error("Erro ao buscar/criar cliente:", error);
