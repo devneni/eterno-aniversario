@@ -186,15 +186,33 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     return `${encoded}${randomString}`;
   }
 
+  // Função para criptografar strings (baseada na função Dart fornecida)
+  function encryptString(value: string): string {
+    const key = "adA6S5D1A65SDA6S5D1";
+    const valueString = `${value}|${key}`;
+    const encoded = btoa(valueString); // Base64 encoding
+
+    // Gerar string aleatória com 6 caracteres
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const randomString = Array.from(
+      { length: 6 },
+      () => chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
+
+    return `${encoded}${randomString}`;
+  }
+
   async function createPayement(clientId: string) {
     try {
       const encryptedAmount = encryptAmount(selectedPlan?.priceDiscounted || 0);
+      const encryptedUserId = encryptString(clientId);
 
       const pixPayload = {
         amount: encryptedAmount,
         description: `Site de fotos ${coupleName}`,
         email: email,
-        userId: clientId,
+        userId: encryptedUserId,
       };
       console.log(pixPayload);
       const pixResponse = await fetch(
