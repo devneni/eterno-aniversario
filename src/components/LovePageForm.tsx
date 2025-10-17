@@ -159,9 +159,60 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       `Pagamento confirmado: Método ${method}, Total R$${total}. Iniciando criação da página.`
     );
 
-    // Simulação de processamento de pagamento (opcional, remova em produção)
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // busca ou cria cliente
+    const clientEmail = email
+    const clientId = await searchClientId(clientEmail);
 
+    const paymentDetails = await createPayement(clientId);
+
+    createOnDataBase();
+  };
+
+ async function createPayement (clientId:string){
+  /* const pixPayload = {
+        amount: "...", // O valor precisa ser criptografado como no exemplo
+        description: Site de fotos ${userData.coupleName},
+        email: userData.clientEmail,
+        userId: userId // O ID obtido no passo anterior
+    };
+
+    const pixResponse = await fetch('https://api.12testadores.com/api/mercadopago_v2/create_pix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pixPayload)
+    });
+
+    const pixData = await pixResponse.json(); */
+} 
+
+
+  async function searchClientId(clientEmail:string) {
+    try {
+    // 1. BUSCAR OU CRIAR CLIENTE
+    let response = await fetch('https://api.12testadores.com/api/mercadopago_v2/search_client_id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: clientEmail })
+    });
+    let clientData = await response.json();
+    let userId = clientData.id; // Supondo que a API retorna um ID
+
+    if (!userId) {
+      // Se não encontrou, cria o cliente
+      response = await fetch('https://api.12testadores.com/api/mercadopago_v2/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: clientEmail, first_name: "Nome", last_name: "Sobrenome" }) // Adapte os dados
+      });
+      clientData = await response.json();
+      userId = clientData.id;
+    }
+    return userId;
+  }
+    
+  }
+
+  async function createOnDataBase() {
     try {
       await createLovePage(
         coupleName,
@@ -185,7 +236,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     } finally {
       setIsLoading(false); // Desativa o loading
     }
-  };
+  }
 
   if (!selectedPlan) return null;
 
