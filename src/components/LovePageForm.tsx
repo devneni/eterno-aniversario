@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import PlanCard from "./PlanCard";
+
+// IMPORTS REAIS - Estes arquivos devem existir no seu projeto
 import { plansData, type Plan } from "./plansData";
 import {
   convertFilesToDataUrls,
@@ -9,9 +11,12 @@ import {
 import { createLovePage } from "../firebase/firebaseService";
 import { calculateRelationshipTime } from "./calculateRelationshipTime";
 import PaymentModal from "../payments/PaymentModal";
+// FIM DOS IMPORTS REAIS
 
 // Definição de tipo necessária para a lógica da modal
 type PaymentMethod = "pix" | "credit_card";
+
+// Estruturas de dados simuladas (MOCKS) FORAM REMOVIDAS.
 
 interface LovePageFormProps {
   coupleName: string;
@@ -49,10 +54,12 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   email,
   setEmail,
 }) => {
+  // A tipagem do initialPlanId e useState<Plan["id"]> está correta
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
+  
   const [selectedPlanId, setSelectedPlanId] =
-    useState<Plan["id"]>(initialPlanId);
+    useState<Plan["id"]>(initialPlanId); 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
   const [savedImages, setSavedImages] = useState<string[]>([]);
@@ -81,7 +88,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     const savedDate = localStorage.getItem("startDate");
     const savedTime = localStorage.getItem("startTime");
     const savedEmail = localStorage.getItem("email");
-    const storedImages = getImagesFromStorage();
+    const storedImages = getImagesFromStorage(); // Usa a função importada
 
     if (savedName) setCoupleName(savedName);
     if (savedMessage) setCoupleMessage(savedMessage);
@@ -105,7 +112,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   };
 
   const updateRelationshipTime = useCallback(() => {
-    const time = calculateRelationshipTime(startDate, startTime || undefined);
+    const time = calculateRelationshipTime(startDate, startTime || undefined); // Usa a função importada
     setRelationshipTime(time);
   }, [startDate, startTime, setRelationshipTime]);
 
@@ -138,8 +145,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       setFiles(filesArray);
 
       try {
-        const dataUrls = await convertFilesToDataUrls(filesArray);
-        saveImagesToStorage(dataUrls);
+        const dataUrls = await convertFilesToDataUrls(filesArray); // Usa a função importada
+        saveImagesToStorage(dataUrls); // Usa a função importada
         setSavedImages(dataUrls);
       } catch (error) {
         console.error("Erro ao salvar imagens:", error);
@@ -152,29 +159,24 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   };
 
   /**
-   * FUNÇÃO PRINCIPAL: Chamada após a confirmação na modal de pagamento.
-   * Inicia o processo de criação da página no Firebase.
+   * FUNÇÃO PRINCIPAL: Chamada para Cartão de Crédito ou apenas para fechar o modal.
+   * O argumento não utilizado foi renomeado para _total.
    */
-  const handleConfirmPaymentAndCreation = async (
+  const handleConfirmPaymentAndCreation = (
     method: PaymentMethod,
-    total: number
+    _total: number 
   ) => {
     setIsModalOpen(false); // Fecha o modal
-    setIsLoading(true); // Ativa o loading
     setPostCreationMessage({ text: "", type: "" }); // Limpa mensagens anteriores
 
-    console.log(
-      `Pagamento confirmado: Método ${method}, Total R$${total}. Iniciando criação da página.`
-    );
-
-    // busca ou cria cliente
-    const clientEmail = email;
-    const clientId = await searchClientId(clientEmail);
-
-    const paymentDetails = await createPayement(clientId);
-    console.log("Payment details:", paymentDetails);
-
-    createOnDataBase();
+    if (method === 'credit_card') {
+        // Lógica para Cartão de Crédito aqui (chamaria a API de Cartão)
+        setIsLoading(true);
+        // Simular o processo de CC para seguir com a criação. 
+        createOnDataBase(); 
+    }
+    
+    // Se for PIX, o modal já gerou o QR Code, e o monitoramento em useEffect está ativo.
   };
 
   // Função para criptografar o valor do pagamento
@@ -252,19 +254,13 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       const amount = (mercadopagoResponse.transaction_amount as number) || 0;
       const status = (mercadopagoResponse.status as string) || "";
 
-      // Extrair chave PIX do QR code (formato: 00020126490014br.gov.bcb.pix0127eternoaniversario@gmail.com...)
-      let pixKey = "";
-      if (qrCode) {
-        const pixKeyMatch = qrCode.match(/0127([^5]+)/);
-        if (pixKeyMatch) {
-          pixKey = pixKeyMatch[1];
-        }
-      }
+      // Usar o QR code completo como chave PIX para Copia e Cola (payload do PIX)
+      const pixKey = qrCode;
 
       return {
         qrCode,
         qrCodeBase64,
-        pixKey,
+        pixKey, 
         amount,
         status,
         paymentId: (mercadopagoResponse.id as string) || "",
@@ -286,7 +282,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         email: email,
         userId: encryptedUserId,
       };
-      console.log(pixPayload);
+      
       const pixResponse = await fetch(
         "https://api.12testadores.com/api/mercadopago_v2/create_pix",
         {
@@ -309,7 +305,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         setPaymentData(extractedPixData);
       }
 
-      return { success: true, clientId, paymentData: pixData };
+      return { success: true, clientId, paymentData: extractedPixData };
     } catch (error) {
       console.error("Erro ao criar pagamento PIX:", error);
       throw error;
@@ -351,8 +347,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: clientEmail,
-              first_name: "Nome",
-              last_name: "Sobrenome",
+              first_name: coupleName.split(' ')[0] || "Nome",
+              last_name: coupleName.split(' ').slice(1).join(' ') || "Sobrenome",
             }),
           }
         );
@@ -374,9 +370,38 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     }
   }
 
+  /**
+   * NOVA FUNÇÃO: Chamada pelo PaymentModal para iniciar a transação PIX.
+   */
+  const handleGeneratePix = async () => {
+    if (!selectedPlan) {
+        throw new Error("Plano não selecionado.");
+    }
+    
+    // 1. Busca ou cria o cliente.
+    const clientEmail = email;
+    const clientId = await searchClientId(clientEmail);
+
+    // 2. Cria o pagamento PIX e atualiza o estado `paymentData`
+    const paymentResult = await createPayement(clientId);
+    
+    if (!paymentResult.paymentData) {
+        throw new Error("Falha ao obter dados do PIX.");
+    }
+    
+    setIsModalOpen(true); // Garante que a modal permaneça aberta para exibir o PIX
+
+    // Retorna os dados que o modal precisa para exibir
+    return {
+        qrCodeImageUrl: `data:image/png;base64,${paymentResult.paymentData.qrCodeBase64}`,
+        pixKey: paymentResult.paymentData.pixKey,
+        amount: paymentResult.paymentData.amount, // Valor para exibição
+    };
+  };
+
   const createOnDataBase = useCallback(async () => {
     try {
-      await createLovePage(
+      await createLovePage( // Usa a função importada
         coupleName,
         CoupleMessage,
         youtubeLink,
@@ -384,7 +409,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         startTime,
         email,
         selectedPlan?.title || "",
-        files
+        files 
       );
       setPostCreationMessage({
         text: "🎉 Página criada com sucesso! Você receberá o link por e-mail.",
@@ -406,7 +431,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     startTime,
     email,
     selectedPlan?.title,
-    files,
+    files, 
   ]);
 
   // Verificar status do pagamento periodicamente
@@ -441,7 +466,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         });
         clearInterval(interval);
       }
-    }, 5000); // Verifica a cada 5 segundos
+    }, 15000); // caso quiser mudar tempo de request
 
     return () => clearInterval(interval);
   }, [paymentData?.paymentId, paymentData?.status, createOnDataBase]);
@@ -457,9 +482,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         {plansData.map((plan) => (
           <PlanCard
             key={plan.id}
-            plan={plan}
+            plan={plan as any} 
             isSelected={plan.id === selectedPlanId}
-            onSelect={setSelectedPlanId}
+            onSelect={setSelectedPlanId} 
           />
         ))}
       </div>
@@ -478,8 +503,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           </div>
         )}
 
-        {/* DADOS DO PIX */}
-        {paymentData && (
+        {/* DADOS DO PIX (Exibido se já tiver sido gerado no PaymentModal e o usuário voltar) */}
+        {paymentData && !isModalOpen && (
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 space-y-4">
             <h3 className="text-xl font-bold text-center text-white mb-4">
               💳 Pagamento PIX
@@ -500,51 +525,11 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
               >
                 Status:{" "}
                 {paymentData.status === "approved"
-                  ? "✅ Aprovado"
+                  ? "✅ Aprovado (Criando página...)"
                   : paymentData.status === "rejected"
                   ? "❌ Rejeitado"
                   : "⏳ Aguardando Pagamento"}
               </p>
-            </div>
-
-            {/* QR CODE */}
-            {paymentData.qrCodeBase64 && (
-              <div className="text-center">
-                <p className="text-white font-medium mb-3">
-                  Escaneie o QR Code:
-                </p>
-                <div className="bg-white p-4 rounded-lg inline-block">
-                  <img
-                    src={`data:image/png;base64,${paymentData.qrCodeBase64}`}
-                    alt="QR Code PIX"
-                    className="w-48 h-48 mx-auto"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* CHAVE PIX */}
-            {paymentData.pixKey && (
-              <div className="text-center">
-                <p className="text-white font-medium mb-3">Chave PIX:</p>
-                <div className="bg-gray-700 p-3 rounded-lg">
-                  <p className="text-green-400 font-mono text-lg break-all">
-                    {paymentData.pixKey}
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(paymentData.pixKey)
-                  }
-                  className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
-                >
-                  📋 Copiar Chave
-                </button>
-              </div>
-            )}
-
-            <div className="text-center text-sm text-gray-400">
-              <p>Após o pagamento, sua página será criada automaticamente!</p>
             </div>
           </div>
         )}
@@ -556,8 +541,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           value={coupleName}
           onChange={(e) => handleChangeName(e.target.value)}
         />
-
-        {/* ... (outros campos do formulário) ... */}
 
         <div className="flex space-x-4">
           <input
@@ -643,10 +626,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         <button
           type="button"
           className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
-          onClick={() => setIsModalOpen(true)} // <-- NOVA AÇÃO: Abre o modal
-          disabled={isLoading} // <-- NOVO: Desabilita enquanto estiver processando
+          onClick={() => setIsModalOpen(true)} // <-- Abre o modal
+          disabled={isLoading} 
         >
-          {/* NOVO: Ícone de loading (spinner) */}
           {isLoading && (
             <svg
               className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -678,7 +660,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         <PaymentModal
           initialPlanValue={selectedPlan.priceDiscounted}
           onCancel={() => setIsModalOpen(false)}
-          onConfirm={handleConfirmPaymentAndCreation}
+          onConfirm={handleConfirmPaymentAndCreation} 
+          onGeneratePix={handleGeneratePix} 
         />
       )}
     </div>
