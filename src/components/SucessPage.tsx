@@ -11,7 +11,7 @@ function SuccessPage({ pageUrl, coupleName, onClose, onEdit }: SuccessPageProps)
   useEffect(() => {
     console.log('Abrindo página em NOVA ABA:', pageUrl);
     
-    // ✅ ABRIR EM NOVA ABA (não na mesma)
+
     const newTab = window.open(pageUrl, '_blank');
     
     if (!newTab) {
@@ -41,12 +41,11 @@ function SuccessPage({ pageUrl, coupleName, onClose, onEdit }: SuccessPageProps)
   };
 
   const handleAccessPage = () => {
-    // ✅ ABRIR EM NOVA ABA
+
     window.open(pageUrl, '_blank');
   };
 
   const handleEditPage = () => {
-    // ✅ ABRIR EM NOVA ABA para edição
     window.open(pageUrl, '_blank');
     if (onEdit) {
       onEdit();

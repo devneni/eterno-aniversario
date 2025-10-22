@@ -5,6 +5,7 @@ import { createLovePage } from "../firebase/firebaseService";
 import { calculateRelationshipTime } from "./calculateRelationshipTime";
 import PaymentModal from "../payments/PaymentModal";
 import SuccessPage from "./SucessPage";
+import { convertFilesToDataUrls, saveImagesToStorage } from "./imageStorage";
 
 type PaymentMethod = "pix" | "credit_card";
 
@@ -46,13 +47,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
-  
-  const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(initialPlanId); 
+
+  const [selectedPlanId, setSelectedPlanId] =
+    useState<Plan["id"]>(initialPlanId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedPlan = plansData.find((plan) => plan.id === selectedPlanId);
-  
+
   const [showSuccessPage, setShowSuccessPage] = useState(false);
-  const [createdPageUrl, setCreatedPageUrl] = useState('');
+  const [createdPageUrl, setCreatedPageUrl] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +63,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     type: string;
   }>({ text: "", type: "" });
 
-  // Carregar dados do localStorage
   useEffect(() => {
     const savedName = localStorage.getItem("coupleName");
     const savedMessage = localStorage.getItem("CoupleMessage");
@@ -121,8 +122,17 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         0,
         selectedPlan?.photos || 5
       );
-      console.log('📸 Arquivos selecionados:', filesArray.length);
+      console.log("📸 Arquivos selecionados:", filesArray.length);
       setFiles(filesArray);
+
+      // Salvar imagens em cache imediatamente
+      try {
+        const dataUrls = await convertFilesToDataUrls(filesArray);
+        saveImagesToStorage(dataUrls);
+        console.log("✅ Imagens salvas em cache");
+      } catch (error) {
+        console.error("❌ Erro ao salvar imagens em cache:", error);
+      }
     }
   };
 
@@ -132,45 +142,49 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
   const handleEditInfo = () => {
     setShowSuccessPage(false);
-    alert('Funcionalidade de edição em desenvolvimento!');
+    alert("Funcionalidade de edição em desenvolvimento!");
   };
 
   const handleConfirmPaymentAndCreation = (
     method: PaymentMethod,
-    total: number 
+    total: number
   ) => {
-    console.log("🎯 handleConfirmPaymentAndCreation chamado:", { method, total });
-    
+    console.log(" handleConfirmPaymentAndCreation chamado:", { method, total });
+
     setIsModalOpen(false);
     setPostCreationMessage({ text: "", type: "" });
 
-    if (method === 'pix') {
-      console.log("✅ Modo PIX detectado - iniciando criação da página...");
+    if (method === "pix") {
+      console.log("✅Modo PIX detectado - iniciando criação da página...");
       setIsLoading(true);
       setPostCreationMessage({
-        text: "✅ Pagamento confirmado! Criando sua página...",
-        type: "success"
+        text: "Pagamento confirmado! Criando sua página...",
+        type: "success",
       });
-      
+
       setTimeout(() => {
-        console.log("🚀 Chamando createOnDataBase...");
-        createOnDataBase(); 
+        console.log(" Chamando createOnDataBase...");
+        createOnDataBase();
       }, 500);
-      
+
       return;
     }
-    
-    if (method === 'credit_card') {
+
+    if (method === "credit_card") {
       console.log("💳 Modo Cartão de Crédito detectado");
       setIsLoading(true);
-      createOnDataBase(); 
+      createOnDataBase();
     }
   };
 
   const createOnDataBase = useCallback(async () => {
     console.log("📦 createOnDataBase INICIADO");
     console.log("📸 Arquivos para upload:", files.length);
-    
+    console.log(
+      "📸 Detalhes dos arquivos:",
+      files.map((f) => ({ name: f.name, size: f.size, type: f.type }))
+    );
+
     try {
       const { pageId, customSlug } = await createLovePage(
         coupleName,
@@ -180,34 +194,41 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         startTime,
         email,
         selectedPlan?.title || "",
-        files // ✅ CORRIGIDO: Passando os arquivos corretamente
+        files
       );
-      
+
       console.log(" createLovePage executado com sucesso!");
       console.log(" Page ID:", pageId);
       console.log(" Custom Slug:", customSlug);
-      
-      // URL PERSONALIZADA
+
       const customPageUrl = `${window.location.origin}/shared/${customSlug}`;
-      
-      console.log('🎯 URL Personalizada:', customPageUrl);
-      
+
+      console.log(" URL Personalizada:", customPageUrl);
+
       setCreatedPageUrl(customPageUrl);
-      setShowSuccessPage(true);
-      
+
+      // Abrir SuccessPage em nova aba (não mostrar na mesma aba)
+      const successPageUrl = `${
+        window.location.origin
+      }/success?pageUrl=${encodeURIComponent(
+        customPageUrl
+      )}&coupleName=${encodeURIComponent(coupleName)}`;
+      window.open(successPageUrl, "_blank");
+
+      // Não mostrar SuccessPage na mesma aba
+      setShowSuccessPage(false);
+
       setPostCreationMessage({
-        text: "🎉 Página criada com sucesso!",
+        text: " Página criada com sucesso!",
         type: "success",
       });
-      
-      // Limpar formulário após sucesso
+
       localStorage.removeItem("coupleName");
       localStorage.removeItem("CoupleMessage");
       localStorage.removeItem("youtubeLink");
       localStorage.removeItem("startDate");
       localStorage.removeItem("startTime");
       localStorage.removeItem("email");
-      
     } catch (error: any) {
       console.error(" ERRO em createOnDataBase:", error);
       setPostCreationMessage({
@@ -225,7 +246,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     startTime,
     email,
     selectedPlan?.title,
-    files, // ✅ CORRIGIDO: Dependência dos arquivos
+    files,
   ]);
 
   if (!selectedPlan) return null;
@@ -239,9 +260,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         {plansData.map((plan) => (
           <PlanCard
             key={plan.id}
-            plan={plan as any} 
+            plan={plan as any}
             isSelected={plan.id === selectedPlanId}
-            onSelect={setSelectedPlanId} 
+            onSelect={setSelectedPlanId}
           />
         ))}
       </div>
@@ -340,7 +361,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         >
           {files.length > 0
             ? (() => {
-                return files.length === 1 ? '1 imagem selecionada' : `${files.length} imagens selecionadas`;
+                return files.length === 1
+                  ? "1 imagem selecionada"
+                  : `${files.length} imagens selecionadas`;
               })()
             : `Selecione até ${selectedPlan.photos} imagens`}
         </button>
@@ -349,7 +372,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           type="button"
           className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
           onClick={() => setIsModalOpen(true)}
-          disabled={isLoading} 
+          disabled={isLoading}
         >
           {isLoading && (
             <svg
@@ -381,8 +404,15 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         <PaymentModal
           initialPlanValue={selectedPlan.priceDiscounted}
           onCancel={() => setIsModalOpen(false)}
-          onConfirm={handleConfirmPaymentAndCreation} 
-          onGeneratePix={() => {}} 
+          onConfirm={handleConfirmPaymentAndCreation}
+          onGeneratePix={async () => ({
+            qrCode: "",
+            qrCodeBase64: "",
+            paymentId: "",
+            qrCodeImageUrl: "",
+            pixKey: "",
+            amount: 0,
+          })}
         />
       )}
 

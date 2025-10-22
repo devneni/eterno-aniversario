@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
-import { calculateRelationshipTime } from './calculateRelationshipTime';
-import { getPageBySlug } from '../firebase/firebaseService';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import { calculateRelationshipTime } from "./calculateRelationshipTime";
+import { getPageBySlug } from "../firebase/firebaseService";
+import { getImagesFromStorage } from "./imageStorage";
 
 interface LovePageData {
   id?: string;
@@ -14,203 +15,112 @@ interface LovePageData {
   startTime: string;
   email: string;
   selectedPlan: string;
-  imagesUrl: string[] | string | null;
+  imagesUrl?: string[] | string | null; // Mantido para compatibilidade
+  imageFileNames?: string[]; // Nova propriedade para nomes dos arquivos
   customSlug?: string;
   createdAt: {
     toDate?: () => Date;
   };
 }
 
-const FloatingHearts: React.FC = () => {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
-      {[...Array(15)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute heart-animation"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${5 + Math.random() * 5}s`,
-          }}
-        >
-          <img
-            src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
-            alt="heart"
-            className="w-6 h-6 opacity-70"
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const EditModal: React.FC<{
-  pageData: LovePageData;
-  onClose: () => void;
-  onSave: (data: Partial<LovePageData>) => void;
-}> = ({ pageData, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
-    coupleName: pageData.coupleName,
-    coupleMessage: pageData.coupleMessage,
-    youtubeLink: pageData.youtubeLink,
-    startDate: pageData.startDate,
-    startTime: pageData.startTime,
-    selectedPlan: pageData.selectedPlan
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#121212] rounded-2xl p-6 max-w-md w-full mx-auto">
-        <h2 className="text-2xl font-bold text-white mb-4">Editar Página</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-white text-sm mb-1 block">Nome do Casal</label>
-            <input
-              type="text"
-              value={formData.coupleName}
-              onChange={(e) => setFormData(prev => ({ ...prev, coupleName: e.target.value }))}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-white text-sm mb-1 block">Mensagem do Casal</label>
-            <textarea
-              value={formData.coupleMessage}
-              onChange={(e) => setFormData(prev => ({ ...prev, coupleMessage: e.target.value }))}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
-              rows={3}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-white text-sm mb-1 block">Link do YouTube</label>
-            <input
-              type="text"
-              value={formData.youtubeLink}
-              onChange={(e) => setFormData(prev => ({ ...prev, youtubeLink: e.target.value }))}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
-              placeholder="https://www.youtube.com/watch?v=..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-white text-sm mb-1 block">Data de Início</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-white text-sm mb-1 block">Hora de Início</label>
-              <input
-                type="time"
-                value={formData.startTime}
-                onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-            >
-              Salvar Alterações
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
 const SharedLovePage: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const [pageData, setPageData] = useState<LovePageData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [relationshipTime, setRelationshipTime] = useState<string>('');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [manualCarousel, setManualCarousel] = useState(false);
+  const [relationshipTime, setRelationshipTime] = useState<string>("");
 
-  const processImageUrls = (urls: string[] | string | null | undefined): string[] => {
-    console.log('🔄 Processando URLs:', urls);
-    
-    if (!urls) return [];
-    
-    if (typeof urls === 'string') {
-      return urls.trim() !== '' ? [urls] : [];
-    }
-    
-    if (Array.isArray(urls)) {
-      // ✅ CORRIGIDO: Filtra apenas URLs válidas
-      return urls.filter(url => 
-        url && 
-        typeof url === 'string' && 
-        url.trim() !== '' &&
-        (url.startsWith('http://') || url.startsWith('https://'))
+  const processImageUrls = (
+    urls: string[] | string | null | undefined,
+    fileNames?: string[]
+  ): string[] => {
+    console.log("🔄 Processando imagens...");
+    console.log("🔄 URLs recebidas:", urls);
+    console.log("🔄 Nomes dos arquivos:", fileNames);
+
+    // Se temos nomes de arquivos, usar cache
+    if (fileNames && fileNames.length > 0) {
+      console.log("📸 Usando sistema de cache com nomes de arquivos");
+      const cachedImages = getImagesFromStorage();
+      console.log("📸 Imagens em cache:", cachedImages.length);
+
+      // Retornar as imagens do cache (assumindo que estão na mesma ordem)
+      const validImages = cachedImages.filter(
+        (img) => img && img.trim() !== ""
       );
+      console.log("✅ Imagens válidas do cache:", validImages.length);
+      return validImages;
     }
-    
+
+    // Fallback para o sistema antigo de URLs
+    console.log("🔄 Usando sistema antigo de URLs");
+    if (!urls) {
+      console.log("❌ URLs é null/undefined");
+      return [];
+    }
+
+    if (typeof urls === "string") {
+      console.log("📝 URLs é string:", urls);
+      return urls.trim() !== "" ? [urls] : [];
+    }
+
+    if (Array.isArray(urls)) {
+      console.log("📋 URLs é array com", urls.length, "itens");
+      console.log("📋 Conteúdo do array:", urls);
+
+      const filtered = urls.filter((url) => {
+        const isValid =
+          url &&
+          typeof url === "string" &&
+          url.trim() !== "" &&
+          (url.startsWith("http://") || url.startsWith("https://"));
+
+        console.log("🔍 URL:", url, "é válida?", isValid);
+        return isValid;
+      });
+
+      console.log("✅ URLs filtradas:", filtered);
+      return filtered;
+    }
+
+    console.log("❌ URLs não é string nem array");
     return [];
   };
 
-  // Função para atualizar o tempo do relacionamento em tempo real
-  const updateRelationshipTime = () => {
+  const updateRelationshipTime = useCallback(() => {
     if (pageData) {
-      const time = calculateRelationshipTime(pageData.startDate, pageData.startTime);
+      const time = calculateRelationshipTime(
+        pageData.startDate,
+        pageData.startTime
+      );
       setRelationshipTime(time);
     }
-  };
+  }, [pageData]);
 
-  // Carregar dados da página
   useEffect(() => {
     const loadPageData = async () => {
       if (!pageId) {
-        setError('ID da página não encontrado');
+        setError("ID da página não encontrado");
         setLoading(false);
         return;
       }
 
       try {
-        console.log('🔍 Buscando página:', pageId);
-        
+        console.log("🔍 Buscando página:", pageId);
+
         let pageData = null;
-        
-        // Sempre tentar buscar por slug primeiro
-        console.log('🔄 Buscando por slug personalizado...');
+
+        console.log("🔄 Buscando por slug personalizado...");
         pageData = await getPageBySlug(pageId);
-        
+
         if (!pageData) {
-          console.log('🔄 Buscando como ID normal...');
-          const docRef = doc(db, 'paginas', pageId);
+          console.log("🔄 Buscando como ID normal...");
+          const docRef = doc(db, "paginas", pageId);
           const docSnap = await getDoc(docRef);
-          
+
           if (docSnap.exists()) {
             pageData = { id: docSnap.id, ...docSnap.data() } as LovePageData;
           }
@@ -218,56 +128,120 @@ const SharedLovePage: React.FC = () => {
 
         if (pageData) {
           const data = pageData as LovePageData;
-          console.log('✅ Dados recebidos do Firestore:', data);
-          console.log('🖼️ URLs de imagem recebidas:', data.imagesUrl);
-          
+          console.log("✅ Dados recebidos do Firestore:", data);
+          console.log("📸 URLs de imagem recebidas:", data.imagesUrl);
+          console.log("📸 Nomes dos arquivos:", data.imageFileNames);
+          console.log("📸 Tipo das URLs:", typeof data.imagesUrl);
+          console.log("📸 É array?", Array.isArray(data.imagesUrl));
+
           setPageData(data);
-          
-          const processedUrls = processImageUrls(data.imagesUrl);
-          console.log('🖼️ URLs processadas:', processedUrls);
+
+          const processedUrls = processImageUrls(
+            data.imagesUrl,
+            data.imageFileNames
+          );
+          console.log("🖼️ URLs processadas:", processedUrls);
+          console.log(
+            "🖼️ Quantidade de URLs processadas:",
+            processedUrls.length
+          );
           setImageUrls(processedUrls);
-          
-          // Calcular tempo inicial
+
           updateRelationshipTime();
         } else {
-          console.log('❌ Página não encontrada no Firestore');
-          setError('Página não encontrada');
+          console.log(" Página não encontrada no Firestore");
+          setError("Página não encontrada");
         }
       } catch (err) {
-        console.error('💥 Erro ao carregar página:', err);
-        setError('Erro ao carregar a página');
+        console.error(" Erro ao carregar página:", err);
+        setError("Erro ao carregar a página");
       } finally {
         setLoading(false);
       }
     };
 
     loadPageData();
-  }, [pageId]);
+  }, [pageId, updateRelationshipTime]);
 
-  // Atualizar o tempo a cada segundo se tiver hora específica
   useEffect(() => {
     if (!pageData) return;
 
-    const interval = setInterval(updateRelationshipTime, pageData.startTime ? 1000 : 60000);
+    const interval = setInterval(
+      updateRelationshipTime,
+      pageData.startTime ? 1000 : 60000
+    );
     return () => clearInterval(interval);
-  }, [pageData]);
+  }, [pageData, updateRelationshipTime]);
 
-  // Carrossel automático
+  // Carrossel automático - só executa quando imageUrls muda
   useEffect(() => {
-    if (imageUrls.length <= 1) return;
+    console.log("🔄 Configurando carrossel de imagens...");
+    console.log("📸 Total de imagens:", imageUrls.length);
+    console.log("📸 URLs das imagens:", imageUrls);
+
+    if (imageUrls.length <= 1) {
+      console.log("⚠️ Menos de 2 imagens, carrossel desabilitado");
+      return;
+    }
+
+    console.log("✅ Iniciando carrossel automático (3 segundos)");
 
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => 
-        prev === imageUrls.length - 1 ? 0 : prev + 1
-      );
-    }, 3000);
+      setCurrentImageIndex((prev) => {
+        const nextIndex = prev === imageUrls.length - 1 ? 0 : prev + 1;
+        console.log(`🔄 Mudando imagem: ${prev} -> ${nextIndex}`);
+        console.log(`🔄 Nova URL:`, imageUrls[nextIndex]);
+        return nextIndex;
+      });
+    }, 7000);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log("🛑 Parando carrossel");
+      clearInterval(interval);
+    };
   }, [imageUrls]);
+
+  // Efeito separado para transições suaves
+  useEffect(() => {
+    if (imageUrls.length > 0) {
+      console.log(
+        `🖼️ Exibindo imagem ${currentImageIndex + 1}/${imageUrls.length}`
+      );
+    }
+  }, [currentImageIndex, imageUrls.length]);
+
+  // Carrossel automático - ativa quando há múltiplas imagens
+  useEffect(() => {
+    if (imageUrls.length > 1) {
+      console.log("🎠 Ativando carrossel automático");
+      setManualCarousel(true);
+    } else {
+      setManualCarousel(false);
+    }
+  }, [imageUrls.length]);
+
+  // Carrossel manual alternativo
+  useEffect(() => {
+    if (manualCarousel && imageUrls.length > 1) {
+      console.log("🎠 Iniciando carrossel manual");
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => {
+          const nextIndex = prev === imageUrls.length - 1 ? 0 : prev + 1;
+          console.log(`🎠 Carrossel manual: ${prev} -> ${nextIndex}`);
+          return nextIndex;
+        });
+      }, 7000);
+
+      return () => {
+        console.log("🛑 Parando carrossel manual");
+        clearInterval(interval);
+      };
+    }
+  }, [manualCarousel, imageUrls.length]);
 
   const nextImage = () => {
     if (imageUrls.length > 0) {
-      setCurrentImageIndex((prev) => 
+      setCurrentImageIndex((prev) =>
         prev === imageUrls.length - 1 ? 0 : prev + 1
       );
     }
@@ -275,61 +249,35 @@ const SharedLovePage: React.FC = () => {
 
   const prevImage = () => {
     if (imageUrls.length > 0) {
-      setCurrentImageIndex((prev) => 
+      setCurrentImageIndex((prev) =>
         prev === 0 ? imageUrls.length - 1 : prev - 1
       );
     }
   };
 
   const convertYoutubeLink = (link: string): string => {
-    if (!link) return '';
+    if (!link) return "";
     try {
       const url = new URL(link);
-      let videoId = '';
-      
+      let videoId = "";
+
       if (url.hostname.includes("youtube.com")) {
-        videoId = url.searchParams.get("v") || '';
+        videoId = url.searchParams.get("v") || "";
       } else if (url.hostname === "youtu.be") {
         videoId = url.pathname.substring(1);
       }
-      
-      return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&loop=1&playlist=${videoId}` : "";
+
+      return videoId
+        ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&loop=1&playlist=${videoId}`
+        : "";
     } catch {
       return "";
-    }
-  };
-
-  const handleEditSave = async (updatedData: Partial<LovePageData>) => {
-    if (!pageData?.id) return;
-
-    setIsEditing(true);
-    try {
-      const docRef = doc(db, 'paginas', pageData.id);
-      await updateDoc(docRef, {
-        ...updatedData,
-        updatedAt: new Date()
-      });
-      
-      // Atualizar estado local
-      setPageData(prev => prev ? { ...prev, ...updatedData } : null);
-      setShowEditModal(false);
-      
-      // Recalcular tempo
-      updateRelationshipTime();
-      
-      alert('Alterações salvas com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar página:', error);
-      alert('Erro ao salvar alterações');
-    } finally {
-      setIsEditing(false);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center">
-        <FloatingHearts />
         <div className="text-white text-center z-10">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-xl">Carregando página de amor...</p>
@@ -341,11 +289,10 @@ const SharedLovePage: React.FC = () => {
   if (error || !pageData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center">
-        <FloatingHearts />
         <div className="text-white text-center z-10">
-          <p className="text-xl mb-4">{error || 'Página não encontrada'}</p>
-          <Link 
-            to="/" 
+          <p className="text-xl mb-4">{error || "Página não encontrada"}</p>
+          <Link
+            to="/"
             className="bg-white text-pink-500 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
           >
             Criar minha página
@@ -359,36 +306,8 @@ const SharedLovePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 relative">
-      <FloatingHearts />
-
       <style>
         {`
-          .heart-animation {
-            animation: floatHeart linear infinite;
-          }
-          @keyframes floatHeart {
-            0% {
-              transform: translateY(100vh) rotate(0deg);
-              opacity: 1;
-            }
-            100% {
-              transform: translateY(-100px) rotate(360deg);
-              opacity: 0;
-            }
-          }
-          .heart-overlay {
-            animation: floatOverlay ease-in-out infinite;
-          }
-          @keyframes floatOverlay {
-            0%, 100% {
-              transform: translateY(0) scale(1);
-              opacity: 0.4;
-            }
-            50% {
-              transform: translateY(-10px) scale(1.1);
-              opacity: 0.7;
-            }
-          }
           .fade-in {
             animation: fadeIn 0.8s ease-in;
           }
@@ -402,11 +321,21 @@ const SharedLovePage: React.FC = () => {
               transform: translateY(0) scale(1); 
             }
           }
+          @keyframes fadeInScale {
+            0% {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
         `}
       </style>
 
       <div className="absolute top-4 left-4 z-50">
-        <Link 
+        <Link
           to="/"
           className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-200 flex items-center gap-2"
         >
@@ -415,22 +344,11 @@ const SharedLovePage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Botão Editar */}
-      <div className="absolute top-4 right-4 z-50">
-        <button
-          onClick={() => setShowEditModal(true)}
-          className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-200 flex items-center gap-2"
-          disabled={isEditing}
-        >
-          {isEditing ? 'Editando...' : ' Editar'}
-        </button>
-      </div>
-
       <div className="text-center text-white py-12 fade-in">
         <div className="mb-4">
-          <img 
-            src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png" 
-            alt="Coração" 
+          <img
+            src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
+            alt="Coração"
             className="w-16 h-16 mx-auto mb-4 animate-pulse"
           />
         </div>
@@ -443,33 +361,43 @@ const SharedLovePage: React.FC = () => {
         </p>
       </div>
 
-      <div className="fade-in">
-        <div className="bg-white/20 backdrop-blur-sm mx-4 md:mx-auto md:max-w-2xl rounded-2xl p-6 md:p-8 mb-8 transform hover:scale-[1.02] transition duration-300">
-          <p className="text-white text-xl md:text-2xl text-center italic leading-relaxed">
-            "{pageData.coupleMessage}"
-          </p>
-        </div>
-      </div>
-
+      {/* Imagens logo abaixo do nome do casal */}
       {imageUrls.length > 0 ? (
-        <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12">
+        <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-8">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
             <h2 className="text-white text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3">
               <span>Nossos Momentos</span>
-              <span className="text-lg">({imageUrls.length} foto{imageUrls.length !== 1 ? 's' : ''})</span>
+              <span className="text-lg">
+                ({imageUrls.length} foto{imageUrls.length !== 1 ? "s" : ""})
+              </span>
             </h2>
-            
+
             <div className="relative group">
               <div className="relative rounded-2xl overflow-hidden bg-black/10 shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
-                
+
                 <img
                   src={imageUrls[currentImageIndex]}
                   alt={`Momento ${currentImageIndex + 1}`}
-                  className="w-full h-64 md:h-96 object-cover transition duration-700 ease-in-out"
+                  className="w-full h-64 md:h-96 object-cover transition-all duration-1000 ease-in-out transform hover:scale-105"
+                  style={{
+                    animation: "fadeInScale 1s ease-in-out",
+                  }}
+                  onLoad={() => {
+                    console.log(
+                      `✅ Imagem ${
+                        currentImageIndex + 1
+                      } carregada com sucesso:`,
+                      imageUrls[currentImageIndex]
+                    );
+                  }}
                   onError={(e) => {
-                    console.error(' Erro ao carregar imagem:', imageUrls[currentImageIndex]);
-                    e.currentTarget.src = 'https://via.placeholder.com/800x400/FF69B4/FFFFFF?text=Imagem+Não+Encontrada';
+                    console.error(
+                      "❌ Erro ao carregar imagem:",
+                      imageUrls[currentImageIndex]
+                    );
+                    e.currentTarget.src =
+                      "https://via.placeholder.com/800x400/FF69B4/FFFFFF?text=Imagem+Não+Encontrada";
                   }}
                 />
 
@@ -494,9 +422,9 @@ const SharedLovePage: React.FC = () => {
                           key={index}
                           onClick={() => setCurrentImageIndex(index)}
                           className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                            index === currentImageIndex 
-                              ? 'bg-white scale-125' 
-                              : 'bg-white/50 hover:bg-white/70'
+                            index === currentImageIndex
+                              ? "bg-white scale-125"
+                              : "bg-white/50 hover:bg-white/70"
                           }`}
                         />
                       ))}
@@ -510,22 +438,30 @@ const SharedLovePage: React.FC = () => {
                   {currentImageIndex + 1} / {imageUrls.length}
                 </p>
                 {imageUrls.length > 1 && (
-                  <div className="flex items-center gap-2 text-white/70 text-sm">
-                    <span>Troca automática: 3s</span>
-                  </div>
+                  <div className="flex items-center gap-2 text-white/70 text-sm"></div>
                 )}
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="fade-in mx-4 md:mx-auto md:max-w-2xl mb-12">
+        <div className="fade-in mx-4 md:mx-auto md:max-w-2xl mb-8">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 text-center">
             <p className="text-white text-lg"> Nenhuma imagem disponível</p>
-            <p className="text-white/70 text-sm mt-2">As imagens serão carregadas em breve...</p>
+            <p className="text-white/70 text-sm mt-2">
+              As imagens serão carregadas em breve...
+            </p>
           </div>
         </div>
       )}
+
+      <div className="fade-in">
+        <div className="bg-white/20 backdrop-blur-sm mx-4 md:mx-auto md:max-w-2xl rounded-2xl p-6 md:p-8 mb-8 transform hover:scale-[1.02] transition duration-300">
+          <p className="text-white text-xl md:text-2xl text-center italic leading-relaxed">
+            "{pageData.coupleMessage}"
+          </p>
+        </div>
+      </div>
 
       {youtubeEmbedUrl && (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12">
@@ -533,7 +469,7 @@ const SharedLovePage: React.FC = () => {
             <h2 className="text-white text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3">
               <span>Nossa Música</span>
             </h2>
-            
+
             <div className="bg-black/30 rounded-2xl p-4 md:p-6">
               <div className="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-2xl bg-black">
                 <iframe
@@ -544,16 +480,6 @@ const SharedLovePage: React.FC = () => {
                   allowFullScreen
                 />
               </div>
-              
-              {/* Instrução para o usuário sobre o áudio */}
-              <div className="mt-4 text-center">
-                <p className="text-white/70 text-sm mb-2">
-                  🎵 A música toca automaticamente (pode estar sem som devido às políticas do navegador)
-                </p>
-                <p className="text-white/50 text-xs">
-                  Dica: Clique no ícone de som no player do YouTube para ativar o áudio
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -561,27 +487,21 @@ const SharedLovePage: React.FC = () => {
 
       <div className="text-center text-white/80 py-8 fade-in">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <img 
-            src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png" 
-            alt="heart" 
-            className="w-4 h-4" 
+          <img
+            src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
+            alt="heart"
+            className="w-4 h-4"
           />
           <p className="text-sm">
-            Página criada com amor • {pageData.createdAt?.toDate ? 
-              new Date(pageData.createdAt.toDate()).toLocaleDateString('pt-BR') : 
-              'Data não disponível'
-            }
+            Página criada com amor •{" "}
+            {pageData.createdAt?.toDate
+              ? new Date(pageData.createdAt.toDate()).toLocaleDateString(
+                  "pt-BR"
+                )
+              : "Data não disponível"}
           </p>
         </div>
       </div>
-
-      {showEditModal && pageData && (
-        <EditModal
-          pageData={pageData}
-          onClose={() => setShowEditModal(false)}
-          onSave={handleEditSave}
-        />
-      )}
     </div>
   );
 };

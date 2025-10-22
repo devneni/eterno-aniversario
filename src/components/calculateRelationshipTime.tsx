@@ -3,8 +3,6 @@ export const calculateRelationshipTime = (startDate: string, startTime?: string)
 
   const startDateTime = new Date(startDate);
   const now = new Date();
-
-  // Ajusta hora se startTime foi fornecido
   if (startTime) {
     const [h, m] = startTime.split(":").map(Number);
     startDateTime.setHours(h, m, 0, 0);
