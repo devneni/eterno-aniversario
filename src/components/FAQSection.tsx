@@ -55,13 +55,13 @@ const faqData: FaqItem[] = [
     id: 8,
     question: "Quanto tempo demora pra receber o QR code no e-mail?",
     answer:
-      "Pagamentos com cartão de crédito ficam prontos na hora. Pagamentos por pix também!",
+      "Pagamentos com pix ficam prontos na hora. Pagamentos por pix também!",
   },
   {
     id: 9,
     question: "Quais formas de pagamento são aceitas?",
     answer:
-      "Aceitamos pagamentos via cartão de crédito, débito e Pix, proporcionando conveniência e segurança para você.",
+      "Aceitamos pagamentos via  Pix, proporcionando conveniência e segurança para você.",
   },
   {
     id: 10,

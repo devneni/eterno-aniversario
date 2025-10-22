@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-type PaymentMethod = 'pix' | 'credit_card';
+type PaymentMethod = 'pix'; // Removido 'credit_card'
 
 interface PixData {
     qrCodeImageUrl: string;
@@ -27,7 +27,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     onGeneratePix, 
 }) => {
 
-    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('pix');
+   
     const [coupon, setCoupon] = useState<string>('');
     const [discountValue, setDiscountValue] = useState<number>(0);
     const [couponMessage, setCouponMessage] = useState<string>('');
@@ -40,6 +40,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const [copyMessage, setCopyMessage] = useState<string>('');
 
     const totalValue = initialPlanValue - discountValue;
+
+    // 🆕 FUNÇÃO PARA SIMULAR PIX DE DESENVOLVIMENTO
+    const simulateDevPix = useCallback((): Promise<PixData> => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    qrCodeImageUrl: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmZmZmIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBJWCBERVYgU0lNVUxBRE88L3RleHQ+Cjwvc3ZnPg==",
+                    pixKey: "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-426614174000520400005303986540610.005802BR5913DEV SIMULADO6008BRASILIA62070503***6304E2CA",
+                    amount: totalValue
+                });
+            }, 1000);
+        });
+    }, [totalValue]);
 
     // Função para voltar para a tela de seleção de método
     const handleBackFromPix = useCallback(() => {
@@ -67,44 +80,59 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         };
     }, [onCancel, showPixDetails, handleBackFromPix]); 
 
+    // 🆕 MODIFICADA: ADICIONADO CUPOM DE DESENVOLVIMENTO
     const handleApplyCoupon = useCallback(() => {
         setCouponMessage('');
-        // Simulação de desconto (Adapte esta lógica para sua API real de cupons)
+        
+        // Cupom de desconto normal
         if (coupon.toLowerCase() === 'desconto10') {
             setDiscountValue(1.0);
             setCouponMessage('Cupom aplicado com sucesso! R$ 1,00 de desconto.');
-        } else {
+        } 
+        // 🆕 CUPOM DE DESENVOLVIMENTO - não dá desconto, mas ativa modo simulação
+        else if (coupon.toLowerCase() === 'devpix') {
+            setDiscountValue(0);
+            setCouponMessage('✅ Cupom DEV ativado! O PIX será simulado automaticamente.');
+        } 
+        else {
             setDiscountValue(0);
             setCouponMessage('Cupom inválido ou expirado.');
         }
     }, [coupon]);
 
-    // LÓGICA DE CONFIRMAÇÃO
+    // 🆕 MODIFICADA: ADICIONADA SIMULAÇÃO QUE RETORNA PARA A PÁGINA CRIADA
     const handleConfirm = useCallback(async () => {
-        if (selectedMethod === 'credit_card') {
-            // Se for Cartão de Crédito, chama o handler do pai para iniciar o processo
-            onConfirm(selectedMethod, totalValue); 
-            return;
-        }
+        // 🆕 REMOVIDA A VERIFICAÇÃO DE CARTÃO DE CRÉDITO
+        // Agora só tem PIX, então vai direto para o fluxo PIX
         
-        // Lógica para PIX: chama a função passada pelo pai (onGeneratePix)
+        // 🆕 VERIFICA SE É MODO DESENVOLVIMENTO
+        const isDevMode = coupon.toLowerCase() === 'devpix';
+        
         setIsLoading(true);
         setPixError(null);
         setPixData(null);
-        setShowPixDetails(true); // Abre a tela de loading/detalhes
+        setShowPixDetails(true);
         
         try {
-            // CHAMA A FUNÇÃO REAL DE API DO LovePageForm
-            const data = await onGeneratePix(); 
+            // 🆕 USA SIMULAÇÃO SE FOR CUPOM DEV, SENÃO USA API REAL
+            const data = isDevMode ? await simulateDevPix() : await onGeneratePix();
             setPixData(data);
+            
+            // 🆕 SIMULAÇÃO DIRETA - SE FOR DEV, CONFIRMA AUTOMATICAMENTE APÓS 3 SEGUNDOS
+            if (isDevMode) {
+                setTimeout(() => {
+                    // 🆕 EM VEZ DE ALERT, CHAMA DIRETAMENTE onConfirm PARA RETORNAR À PÁGINA CRIADA
+                    console.log("✅ Pagamento simulado com sucesso! Retornando para página criada...");
+                    onConfirm('pix', totalValue);
+                }, 3000);
+            }
         } catch (error) {
             console.error('Erro na API Pix:', error);
-            // Corrigido: _err para ignorar o warning 'no-unused-vars'
-            setPixError(error instanceof Error ? error.message : 'Falha desconhecida ao gerar o QR Code. Tente novamente.');
+            setPixError(error instanceof Error ? error.message : 'Falha ao gerar o QR Code. Tente novamente.');
         } finally {
             setIsLoading(false);
         }
-    }, [selectedMethod, totalValue, onGeneratePix, onConfirm]);
+    }, [totalValue, onGeneratePix, onConfirm, coupon, simulateDevPix]);
 
     // LÓGICA DE COPIAR CHAVE PIX
     const handleCopyPixKey = async () => {
@@ -119,10 +147,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setTimeout(() => setCopyMessage(''), 3000);
     };
 
-    const confirmButtonText = selectedMethod === 'pix' ? 'Gerar QR Code e Pagar' : 'Pagar Agora';
+    const confirmButtonText = 'Gerar QR Code e Pagar'; // 🆕 REMOVIDA A CONDIÇÃO DO CARTÃO
     
     const RadioSelectedClass = 'ring-2 ring-purple-500 border-purple-500 bg-purple-50'; 
-    const RadioUnselectedClass = 'border-gray-300 hover:bg-gray-100'; 
+   
 
     // --- Renderização do Modal de Detalhes do Pix ---
     const renderPixDetails = () => (
@@ -198,6 +226,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         <p className="text-xs text-red-500 font-medium mb-3">
                             ⚠️ Não feche esta tela antes de pagar.
                         </p>
+                        
+                        {/* 🆕 MENSAGEM ESPECIAL PARA MODO DEV */}
+                        {coupon.toLowerCase() === 'devpix' && (
+                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                                <p className="font-semibold">Modo Desenvolvimento Ativo</p>
+                                <p className="text-sm">Pagamento será simulado automaticamente em instantes...</p>
+                            </div>
+                        )}
+                        
                         <button 
                             className="w-full bg-red-400 text-white font-bold py-3 rounded-lg shadow-xl hover:bg-red-500 transition duration-150 mb-3"
                             onClick={handleBackFromPix}
@@ -247,17 +284,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <h2 className="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Finalizar Pagamento</h2>
 
                 <div className="space-y-3 mb-6">
+                    {/* 🆕 REMOVIDA A OPÇÃO DE CARTÃO DE CRÉDITO - AGORA SÓ TEM PIX */}
                     <div 
-                        className={`p-4 rounded-lg border cursor-pointer ${selectedMethod === 'pix' ? RadioSelectedClass : RadioUnselectedClass}`}
-                        onClick={() => setSelectedMethod('pix')}
+                        className={`p-4 rounded-lg border cursor-pointer ${RadioSelectedClass}`}
                     >
                         <span className="font-medium text-gray-700">Pix (Pagamento Instantâneo)</span>
-                    </div>
-                    <div 
-                        className={`p-4 rounded-lg border cursor-pointer ${selectedMethod === 'credit_card' ? RadioSelectedClass : RadioUnselectedClass}`}
-                        onClick={() => setSelectedMethod('credit_card')}
-                    >
-                        <span className="font-medium text-gray-700">Cartão de Crédito</span>
                     </div>
                 </div>
 
