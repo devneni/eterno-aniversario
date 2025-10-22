@@ -28,7 +28,9 @@ export const createLovePage = async (
   startTime: string,
   email: string,
   selectedPlanTitle: string,
-  files: File[]
+  files: File[],
+  textColor: string = "#ffffff",
+  backgroundColor: string = "#ec4899"
 ): Promise<{ pageId: string; customSlug: string }> => {
   console.log("🔥 createLovePage INICIADO");
   console.log("📸 Arquivos recebidos:", files.length);
@@ -72,6 +74,8 @@ export const createLovePage = async (
     selectedPlan: selectedPlanTitle,
     imageFileNames: fileNames, // Salvar nomes dos arquivos em vez de URLs
     customSlug: customSlug,
+    textColor,
+    backgroundColor,
     createdAt: new Date(),
   };
 

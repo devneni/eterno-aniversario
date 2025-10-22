@@ -26,6 +26,11 @@ interface LovePageFormProps {
   setStartDate: (date: string) => void;
   email: string;
   setEmail: (email: string) => void;
+  textColor: string;
+  setTextColor: (color: string) => void;
+  backgroundColor: string;
+  setBackgroundColor: (color: string) => void;
+ 
 }
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
@@ -44,6 +49,11 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   setStartDate,
   email,
   setEmail,
+  textColor,
+  setTextColor,
+  backgroundColor,
+  setBackgroundColor,
+ 
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
@@ -55,6 +65,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [createdPageUrl, setCreatedPageUrl] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+ 
+ 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +76,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     type: string;
   }>({ text: "", type: "" });
 
+;
+
   useEffect(() => {
     const savedName = localStorage.getItem("coupleName");
     const savedMessage = localStorage.getItem("CoupleMessage");
@@ -70,6 +85,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     const savedDate = localStorage.getItem("startDate");
     const savedTime = localStorage.getItem("startTime");
     const savedEmail = localStorage.getItem("email");
+    const savedTextColor = localStorage.getItem("textColor");
+    const savedBackgroundColor = localStorage.getItem("backgroundColor");
 
     if (savedName) setCoupleName(savedName);
     if (savedMessage) setCoupleMessage(savedMessage);
@@ -77,6 +94,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     if (savedDate) setStartDate(savedDate);
     if (savedTime) setStartTime(savedTime);
     if (savedEmail) setEmail(savedEmail);
+    if (savedTextColor) setTextColor(savedTextColor);
+    if (savedBackgroundColor) setBackgroundColor(savedBackgroundColor);
   }, [
     setCoupleName,
     setCoupleMessage,
@@ -84,6 +103,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     setStartDate,
     setStartTime,
     setEmail,
+    setTextColor, 
+    setBackgroundColor, 
   ]);
 
   const handleChangeName = (name: string) => {
@@ -112,7 +133,22 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     localStorage.setItem("startDate", startDate);
     localStorage.setItem("startTime", startTime);
     localStorage.setItem("email", email);
-  }, [coupleName, CoupleMessage, youtubeLink, startDate, startTime, email]);
+    localStorage.setItem("textColor", textColor);
+    localStorage.setItem("backgroundColor", backgroundColor);
+  }, [coupleName, CoupleMessage, youtubeLink, startDate, startTime, email,textColor, backgroundColor]);
+
+  useEffect(() => {
+  if (files.length > 0) {
+    const urls = files.map(file => URL.createObjectURL(file));
+    setImageUrls(urls);
+    
+    return () => {
+      urls.forEach(url => URL.revokeObjectURL(url));
+    };
+  } else {
+    setImageUrls([]);
+  }
+}, [files]);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -129,9 +165,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       try {
         const dataUrls = await convertFilesToDataUrls(filesArray);
         saveImagesToStorage(dataUrls);
-        console.log("✅ Imagens salvas em cache");
+        console.log(" Imagens salvas em cache");
       } catch (error) {
-        console.error("❌ Erro ao salvar imagens em cache:", error);
+        console.error(" Erro ao salvar imagens em cache:", error);
       }
     }
   };
@@ -194,7 +230,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         startTime,
         email,
         selectedPlan?.title || "",
-        files
+        files,
+        textColor,
+        backgroundColor
       );
 
       console.log(" createLovePage executado com sucesso!");
@@ -207,7 +245,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
       setCreatedPageUrl(customPageUrl);
 
-      // Abrir SuccessPage em nova aba (não mostrar na mesma aba)
+     
       const successPageUrl = `${
         window.location.origin
       }/success?pageUrl=${encodeURIComponent(
@@ -215,7 +253,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       )}&coupleName=${encodeURIComponent(coupleName)}`;
       window.open(successPageUrl, "_blank");
 
-      // Não mostrar SuccessPage na mesma aba
       setShowSuccessPage(false);
 
       setPostCreationMessage({
@@ -311,10 +348,60 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           onChange={(e) => setEmail(e.target.value)}
         />
 
+       
+        <div className="space-y-4 bg-gray-800 border-gray-700 border rounded-lg hover:border-[#ff6969] ">
+          <h3 className="text-lg font-semibold text-white text-center pt-4">
+            Personalize as Cores
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-2">
+            <div className="space-y-2 mb-4">
+              <label className="text-sm text-gray-300 " >Cor do Texto</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="w-12 h-12 rounded-lg  border-gray-600 cursor-pointer hover:border-[#ff6969] border-4"
+                />
+                <input
+                  type="text"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-gray-800 border-4 border-gray-600 hover:border-[#ff6969] rounded-lg text-white"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              <label className="text-sm text-gray-300">Cor de Fundo</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  className="w-12 h-12 rounded-lg border-4 border-gray-600 hover:border-[#ff6969] cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-gray-800 border-4 border-gray-600 rounded-lg hover:border-[#ff6969] text-white"
+                  placeholder="#ec4899"
+                />
+              </div>
+            </div>
+          </div>
+
+
+          
+        </div>
+
         <textarea
           placeholder="Declare seu amor com uma mensagem especial."
           rows={3}
-          className={inputClass}
+          className={inputClass} 
           value={CoupleMessage}
           onChange={(e) => setCoupleMessage(e.target.value)}
         />

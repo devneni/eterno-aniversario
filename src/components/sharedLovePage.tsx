@@ -18,6 +18,8 @@ interface LovePageData {
   imagesUrl?: string[] | string | null; // Mantido para compatibilidade
   imageFileNames?: string[]; // Nova propriedade para nomes dos arquivos
   customSlug?: string;
+  textColor?: string;
+  backgroundColor?: string;
   createdAt: {
     toDate?: () => Date;
   };
@@ -109,15 +111,15 @@ const SharedLovePage: React.FC = () => {
       }
 
       try {
-        console.log("🔍 Buscando página:", pageId);
+        console.log(" Buscando página:", pageId);
 
         let pageData = null;
 
-        console.log("🔄 Buscando por slug personalizado...");
+        console.log(" Buscando por slug personalizado...");
         pageData = await getPageBySlug(pageId);
 
         if (!pageData) {
-          console.log("🔄 Buscando como ID normal...");
+          console.log(" Buscando como ID normal...");
           const docRef = doc(db, "paginas", pageId);
           const docSnap = await getDoc(docRef);
 
@@ -128,11 +130,11 @@ const SharedLovePage: React.FC = () => {
 
         if (pageData) {
           const data = pageData as LovePageData;
-          console.log("✅ Dados recebidos do Firestore:", data);
-          console.log("📸 URLs de imagem recebidas:", data.imagesUrl);
-          console.log("📸 Nomes dos arquivos:", data.imageFileNames);
-          console.log("📸 Tipo das URLs:", typeof data.imagesUrl);
-          console.log("📸 É array?", Array.isArray(data.imagesUrl));
+          console.log(" Dados recebidos do Firestore:", data);
+          console.log(" URLs de imagem recebidas:", data.imagesUrl);
+          console.log(" Nomes dos arquivos:", data.imageFileNames);
+          console.log(" Tipo das URLs:", typeof data.imagesUrl);
+          console.log(" É array?", Array.isArray(data.imagesUrl));
 
           setPageData(data);
 
@@ -140,9 +142,9 @@ const SharedLovePage: React.FC = () => {
             data.imagesUrl,
             data.imageFileNames
           );
-          console.log("🖼️ URLs processadas:", processedUrls);
+          console.log(" URLs processadas:", processedUrls);
           console.log(
-            "🖼️ Quantidade de URLs processadas:",
+            " Quantidade de URLs processadas:",
             processedUrls.length
           );
           setImageUrls(processedUrls);
@@ -189,28 +191,26 @@ const SharedLovePage: React.FC = () => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => {
         const nextIndex = prev === imageUrls.length - 1 ? 0 : prev + 1;
-        console.log(`🔄 Mudando imagem: ${prev} -> ${nextIndex}`);
-        console.log(`🔄 Nova URL:`, imageUrls[nextIndex]);
+        console.log(` Mudando imagem: ${prev} -> ${nextIndex}`);
+        console.log(` Nova URL:`, imageUrls[nextIndex]);
         return nextIndex;
       });
     }, 7000);
 
     return () => {
-      console.log("🛑 Parando carrossel");
+      console.log(" Parando carrossel");
       clearInterval(interval);
     };
   }, [imageUrls]);
 
-  // Efeito separado para transições suaves
   useEffect(() => {
     if (imageUrls.length > 0) {
       console.log(
-        `🖼️ Exibindo imagem ${currentImageIndex + 1}/${imageUrls.length}`
+        ` Exibindo imagem ${currentImageIndex + 1}/${imageUrls.length}`
       );
     }
   }, [currentImageIndex, imageUrls.length]);
 
-  // Carrossel automático - ativa quando há múltiplas imagens
   useEffect(() => {
     if (imageUrls.length > 1) {
       console.log("🎠 Ativando carrossel automático");
@@ -220,7 +220,7 @@ const SharedLovePage: React.FC = () => {
     }
   }, [imageUrls.length]);
 
-  // Carrossel manual alternativo
+
   useEffect(() => {
     if (manualCarousel && imageUrls.length > 1) {
       console.log("🎠 Iniciando carrossel manual");
@@ -305,7 +305,14 @@ const SharedLovePage: React.FC = () => {
   const youtubeEmbedUrl = convertYoutubeLink(pageData.youtubeLink);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 relative">
+    <div
+      className="min-h-screen relative"
+      style={{
+        background: `linear-gradient(135deg, ${
+          pageData.backgroundColor || "#ec4899"
+        }, ${pageData.backgroundColor || "#ef4444"})`,
+      }}
+    >
       <style>
         {`
           .fade-in {
@@ -344,7 +351,10 @@ const SharedLovePage: React.FC = () => {
         </Link>
       </div>
 
-      <div className="text-center text-white py-12 fade-in">
+      <div
+        className="text-center py-12 fade-in"
+        style={{ color: pageData.textColor || "#ffffff" }}
+      >
         <div className="mb-4">
           <img
             src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
@@ -365,7 +375,10 @@ const SharedLovePage: React.FC = () => {
       {imageUrls.length > 0 ? (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-8">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-            <h2 className="text-white text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3">
+            <h2
+              className="text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3"
+              style={{ color: pageData.textColor || "#ffffff" }}
+            >
               <span>Nossos Momentos</span>
               <span className="text-lg">
                 ({imageUrls.length} foto{imageUrls.length !== 1 ? "s" : ""})
@@ -407,13 +420,13 @@ const SharedLovePage: React.FC = () => {
                       onClick={prevImage}
                       className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/60 text-white p-3 rounded-full hover:bg-black/80 transition duration-200 z-20 opacity-0 group-hover:opacity-100"
                     >
-                      ◀
+                      ←
                     </button>
                     <button
                       onClick={nextImage}
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/60 text-white p-3 rounded-full hover:bg-black/80 transition duration-200 z-20 opacity-0 group-hover:opacity-100"
                     >
-                      ▶
+                      →
                     </button>
 
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-3 z-20">
@@ -434,7 +447,10 @@ const SharedLovePage: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center mt-4 px-2">
-                <p className="text-white text-sm">
+                <p
+                  className="text-sm"
+                  style={{ color: pageData.textColor || "#ffffff" }}
+                >
                   {currentImageIndex + 1} / {imageUrls.length}
                 </p>
                 {imageUrls.length > 1 && (
@@ -447,8 +463,17 @@ const SharedLovePage: React.FC = () => {
       ) : (
         <div className="fade-in mx-4 md:mx-auto md:max-w-2xl mb-8">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 text-center">
-            <p className="text-white text-lg"> Nenhuma imagem disponível</p>
-            <p className="text-white/70 text-sm mt-2">
+            <p
+              className="text-lg"
+              style={{ color: pageData.textColor || "#ffffff" }}
+            >
+              {" "}
+              Nenhuma imagem disponível
+            </p>
+            <p
+              className="text-sm mt-2"
+              style={{ color: pageData.textColor || "#ffffff", opacity: 0.7 }}
+            >
               As imagens serão carregadas em breve...
             </p>
           </div>
@@ -457,7 +482,10 @@ const SharedLovePage: React.FC = () => {
 
       <div className="fade-in">
         <div className="bg-white/20 backdrop-blur-sm mx-4 md:mx-auto md:max-w-2xl rounded-2xl p-6 md:p-8 mb-8 transform hover:scale-[1.02] transition duration-300">
-          <p className="text-white text-xl md:text-2xl text-center italic leading-relaxed">
+          <p
+            className="text-xl md:text-2xl text-center italic leading-relaxed"
+            style={{ color: pageData.textColor || "#ffffff" }}
+          >
             "{pageData.coupleMessage}"
           </p>
         </div>
@@ -466,7 +494,10 @@ const SharedLovePage: React.FC = () => {
       {youtubeEmbedUrl && (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-            <h2 className="text-white text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3">
+            <h2
+              className="text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3"
+              style={{ color: pageData.textColor || "#ffffff" }}
+            >
               <span>Nossa Música</span>
             </h2>
 
@@ -485,7 +516,10 @@ const SharedLovePage: React.FC = () => {
         </div>
       )}
 
-      <div className="text-center text-white/80 py-8 fade-in">
+      <div
+        className="text-center py-8 fade-in"
+        style={{ color: pageData.textColor || "#ffffff", opacity: 0.8 }}
+      >
         <div className="flex items-center justify-center gap-2 mb-2">
           <img
             src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import QRCode from "qrcode";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import {
   getImagesFromStorage,
@@ -21,7 +21,28 @@ interface LovePageData {
   imagesUrl?: string[] | string | null;
   imageFileNames?: string[];
   customSlug?: string;
+  textColor?: string;
+  backgroundColor?: string;
   createdAt: {
+    toDate?: () => Date;
+  };
+}
+
+interface PageDataFromFirestore {
+  id?: string;
+  coupleName?: string;
+  coupleMessage?: string;
+  youtubeLink?: string;
+  startDate?: string;
+  startTime?: string;
+  email?: string;
+  selectedPlan?: string;
+  imagesUrl?: string[] | string | null;
+  imageFileNames?: string[];
+  customSlug?: string;
+  textColor?: string;
+  backgroundColor?: string;
+  createdAt?: {
     toDate?: () => Date;
   };
 }
@@ -41,10 +62,96 @@ const SuccessPageStandalone: React.FC = () => {
     youtubeLink: "",
     startDate: "",
     startTime: "",
+    textColor: "#ffffff",
+    backgroundColor: "#ec4899",
   });
-  const [newImages, setNewImages] = useState<File[]>([]);
   const [currentImages, setCurrentImages] = useState<string[]>([]);
   const [maxImages, setMaxImages] = useState(5);
+
+  const generateUniqueSuccessUrl = useCallback(() => {
+    if (pageUrl && coupleName) {
+      // Criar URL única baseada no casal
+      const coupleSlug = coupleName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, "-")
+        .substring(0, 20);
+
+      const uniqueUrl = `${
+        window.location.origin
+      }/success/${coupleSlug}?pageUrl=${encodeURIComponent(
+        pageUrl
+      )}&coupleName=${encodeURIComponent(coupleName)}`;
+      setUniqueSuccessUrl(uniqueUrl);
+      console.log(" URL única da SuccessPage:", uniqueUrl);
+    }
+  }, [pageUrl, coupleName]);
+
+  const generateQRCode = useCallback(async () => {
+    try {
+      // QR Code aponta para a página compartilhada, não para a SuccessPage
+      const qrCodeUrl = await QRCode.toDataURL(pageUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+      setQrCodeDataUrl(qrCodeUrl);
+    } catch (error) {
+      console.error("Erro ao gerar QR Code:", error);
+    }
+  }, [pageUrl]);
+
+  const loadPageData = useCallback(async () => {
+    try {
+      // Extrair slug da URL
+      const urlParts = pageUrl.split("/");
+      const slug = urlParts[urlParts.length - 1];
+
+      console.log("🔍 Carregando dados da página com slug:", slug);
+
+      // Buscar dados da página no Firestore
+      const { getPageBySlug } = await import("../firebase/firebaseService");
+      const data = await getPageBySlug(slug);
+
+      if (data) {
+        console.log("✅ Dados carregados:", data);
+        setPageData(data as LovePageData);
+        const pageData = data as PageDataFromFirestore;
+        setFormData({
+          coupleName: pageData.coupleName || "",
+          coupleMessage: pageData.coupleMessage || "",
+          youtubeLink: pageData.youtubeLink || "",
+          startDate: pageData.startDate || "",
+          startTime: pageData.startTime || "",
+          textColor: pageData.textColor || "#ffffff",
+          backgroundColor: pageData.backgroundColor || "#ec4899",
+        });
+
+        // Carregar imagens do cache
+        const cachedImages = getImagesFromStorage();
+        setCurrentImages(cachedImages);
+
+        // Definir limite de imagens baseado no plano
+        const planLimits: { [key: string]: number } = {
+          Básico: 3,
+          Premium: 5,
+          Deluxe: 10,
+        };
+        setMaxImages(planLimits[(data as LovePageData).selectedPlan] || 5);
+      } else {
+        console.error("❌ Página não encontrada");
+        alert("Página não encontrada");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados da página:", error);
+      alert("Erro ao carregar dados da página");
+    } finally {
+      setLoading(false);
+    }
+  }, [pageUrl]);
 
   useEffect(() => {
     const url = searchParams.get("pageUrl");
@@ -68,89 +175,13 @@ const SuccessPageStandalone: React.FC = () => {
       loadPageData();
       generateUniqueSuccessUrl();
     }
-  }, [pageUrl, coupleName]);
-
-  const generateUniqueSuccessUrl = () => {
-    if (pageUrl && coupleName) {
-      // Criar URL única baseada no casal
-      const coupleSlug = coupleName
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .replace(/\s+/g, "-")
-        .substring(0, 20);
-
-      const uniqueUrl = `${
-        window.location.origin
-      }/success/${coupleSlug}?pageUrl=${encodeURIComponent(
-        pageUrl
-      )}&coupleName=${encodeURIComponent(coupleName)}`;
-      setUniqueSuccessUrl(uniqueUrl);
-      console.log("🔗 URL única da SuccessPage:", uniqueUrl);
-    }
-  };
-
-  const generateQRCode = async () => {
-    try {
-      // QR Code aponta para a página compartilhada, não para a SuccessPage
-      const qrCodeUrl = await QRCode.toDataURL(pageUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-      setQrCodeDataUrl(qrCodeUrl);
-    } catch (error) {
-      console.error("Erro ao gerar QR Code:", error);
-    }
-  };
-
-  const loadPageData = async () => {
-    try {
-      // Extrair slug da URL
-      const urlParts = pageUrl.split("/");
-      const slug = urlParts[urlParts.length - 1];
-
-      console.log("🔍 Carregando dados da página com slug:", slug);
-
-      // Buscar dados da página no Firestore
-      const { getPageBySlug } = await import("../firebase/firebaseService");
-      const data = await getPageBySlug(slug);
-
-      if (data) {
-        console.log("✅ Dados carregados:", data);
-        setPageData(data);
-        setFormData({
-          coupleName: data.coupleName,
-          coupleMessage: data.coupleMessage,
-          youtubeLink: data.youtubeLink,
-          startDate: data.startDate,
-          startTime: data.startTime,
-        });
-
-        // Carregar imagens do cache
-        const cachedImages = getImagesFromStorage();
-        setCurrentImages(cachedImages);
-
-        // Definir limite de imagens baseado no plano
-        const planLimits: { [key: string]: number } = {
-          Básico: 3,
-          Premium: 5,
-          Deluxe: 10,
-        };
-        setMaxImages(planLimits[data.selectedPlan] || 5);
-      } else {
-        console.error("❌ Página não encontrada");
-        alert("Página não encontrada");
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados da página:", error);
-      alert("Erro ao carregar dados da página");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [
+    pageUrl,
+    coupleName,
+    generateQRCode,
+    generateUniqueSuccessUrl,
+    loadPageData,
+  ]);
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -165,8 +196,6 @@ const SuccessPageStandalone: React.FC = () => {
         );
         return;
       }
-
-      setNewImages(files);
 
       // Salvar no cache
       try {
@@ -198,6 +227,8 @@ const SuccessPageStandalone: React.FC = () => {
         youtubeLink: formData.youtubeLink,
         startDate: formData.startDate,
         startTime: formData.startTime,
+        textColor: formData.textColor,
+        backgroundColor: formData.backgroundColor,
         imageFileNames: currentImages.map(
           (_, index) => `image_${Date.now()}_${index}`
         ),
@@ -426,6 +457,90 @@ const SuccessPageStandalone: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Seletores de Cor */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white">
+                    Personalizar Cores
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm text-gray-300">
+                        Cor do Texto
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="color"
+                          value={formData.textColor}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              textColor: e.target.value,
+                            }))
+                          }
+                          className="w-12 h-12 rounded-lg border-2 border-gray-600 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={formData.textColor}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              textColor: e.target.value,
+                            }))
+                          }
+                          className="flex-1 px-3 py-2 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                          placeholder="#ffffff"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm text-gray-300">
+                        Cor de Fundo
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="color"
+                          value={formData.backgroundColor}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              backgroundColor: e.target.value,
+                            }))
+                          }
+                          className="w-12 h-12 rounded-lg border-2 border-gray-600 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={formData.backgroundColor}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              backgroundColor: e.target.value,
+                            }))
+                          }
+                          className="flex-1 px-3 py-2 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                          placeholder="#ec4899"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview das cores */}
+                  <div
+                    className="p-4 rounded-lg border-2 border-gray-600"
+                    style={{ backgroundColor: formData.backgroundColor }}
+                  >
+                    <p
+                      className="text-center font-semibold"
+                      style={{ color: formData.textColor }}
+                    >
+                      Preview: {formData.coupleName || "Nome do Casal"}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Gerenciamento de Imagens */}
                 <div>
                   <label className="text-white text-sm mb-1 block">
@@ -476,13 +591,13 @@ const SuccessPageStandalone: React.FC = () => {
                     onClick={handleSave}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
                   >
-                     Salvar Alterações
+                    Salvar Alterações
                   </button>
                   <button
                     onClick={() => setEditing(false)}
                     className="flex-1 bg-red-500 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
                   >
-                     Cancelar
+                    Cancelar
                   </button>
                 </div>
               </div>

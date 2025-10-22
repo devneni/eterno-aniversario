@@ -18,6 +18,9 @@ function HomePage() {
   const [startTime, setStartTime] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
+  
+  const [textColor, setTextColor] = useState<string>("#ffffff");
+  const [backgroundColor, setBackgroundColor] = useState<string>("#ec4899");
 
   function getInitialCoupleName(): string {
     const name = localStorage.getItem("coupleName");
@@ -70,6 +73,11 @@ function HomePage() {
               setEmail={setEmail}
               startDate={startDate}
               setStartDate={setStartDate}
+              textColor={textColor}
+              setTextColor={setTextColor}
+              backgroundColor={backgroundColor}
+              setBackgroundColor={setBackgroundColor}
+          
             />
           </div>
         </div>
@@ -82,6 +90,11 @@ function HomePage() {
             files={files}
             setFiles={setFiles}
             youtubeLink={youtubeLink}
+            textColor={textColor}
+            backgroundColor={backgroundColor}
+            
+
+            
           />
         </div>
       </div>

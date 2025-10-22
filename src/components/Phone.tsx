@@ -8,6 +8,9 @@ interface PropsPhone {
   files?: File[];
   setFiles?: (files: File[]) => void;
   youtubeLink: string;
+  textColor?: string;
+  backgroundColor?: string;
+  imageUrls?: string[];
 }
 
 // 🆕 Interface para os corações caindo
@@ -43,12 +46,13 @@ function Phone({
   files = [],
   setFiles,
   youtubeLink,
+  textColor = "#ffffff",
+  backgroundColor = "#ec4899",
+  imageUrls = [],
 }: PropsPhone) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [savedImages, setSavedImages] = useState<string[]>([]);
-
   const [fallingHearts, setFallingHearts] = useState<FallingHeart[]>([]);
-
 
   const heartImage = "https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png";
 
@@ -75,7 +79,6 @@ function Phone({
       }));
       setFallingHearts(initialHearts);
 
-
       const heartInterval = setInterval(() => {
         setFallingHearts(prev => [
           ...prev.slice(-20),
@@ -87,7 +90,7 @@ function Phone({
             delay: 0,
           }
         ]);
-      }, 1500); 
+      }, 1500);
 
       return () => clearInterval(heartInterval);
     }
@@ -119,23 +122,52 @@ function Phone({
     : savedImages;
 
   const totalImages = imagesToDisplay.length;
+  const totalImagesCount = files.length > 0 ? files.length : savedImages.length;
 
   return (
-    <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll">
-      <div className="relative w-[200px] h-[300px] mx-auto rounded-[30px] overflow-hidden">
+    <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll mb-15"
+      style={{ backgroundColor }}>
+
+      <div className="mb-4">
+        <img
+          src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
+          alt="Coração"
+          className="w-6 h-6 mx-auto mb-4 animate-pulse"
+        />
+      </div>
+
+      <p className="text-[27px] text-center font-serif mt-5 break-all mb-2"
+        style={{ color: textColor }}>
+        {coupleName}
+      </p>
+
+      <p className="text-white text-center mt-2 font-serif text-[12px]"
+        style={{ color: textColor }}>
+        Estão juntos há
+      </p>
+
+      <p className="text-[12px] text-center mb-2 font-bold bg-white/20 backdrop-blur-sm px-1 py-3 rounded-2xl "
+        style={{ color: textColor }}>
+        {relationshipTime}
+      </p>
+
+      <div className="relative w-[200px] h-[200px] mx-auto fade-in md:mx-auto md:max-w-4xl mb- overflow-hidden bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+        <p className="font-bold text-center text-[12px] mb-4"
+          style={{ color: textColor }}>
+          Nossos momentos <span className="text-[8px]">
+          ({totalImagesCount} foto{totalImagesCount !== 1 ? "s" : ""})</span>
+        </p>
+
         {totalImages > 0 ? (
           <>
-       
-            <div className="relative w-full h-full overflow-hidden">
-       
+            <div className="relative w-full h-30 overflow-hidden">
               <img
                 key={currentIndex}
                 src={imagesToDisplay[currentIndex]}
                 alt={`Imagem ${currentIndex + 1}`}
-                className="w-full h-full object-cover rounded-[30px] transition-all duration-500"
+                className="w-full h-full object-cover rounded-lg transition-all duration-500"
               />
 
-              
               <div className="absolute inset-0 pointer-events-none">
                 {fallingHearts.map((heart) => (
                   <img
@@ -154,7 +186,6 @@ function Phone({
                 ))}
               </div>
 
-            
               <style jsx>{`
                 @keyframes fall {
                   0% {
@@ -181,13 +212,13 @@ function Phone({
                   onClick={handlePrev}
                   className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/40 text-white px-2 py-1 rounded-full hover:bg-black/60 z-20"
                 >
-                  ◀
+                   ←
                 </button>
                 <button
                   onClick={handleNext}
                   className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black/40 text-white px-2 py-1 rounded-full hover:bg-black/60 z-20"
                 >
-                  ▶
+                  →
                 </button>
 
                 <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-2 z-20">
@@ -208,12 +239,7 @@ function Phone({
             htmlFor="file-upload-input"
             className="w-full h-full rounded-[30px] cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969] relative"
           >
-           
-            <img 
-              src={heartImage} 
-              alt="Coração" 
-              className="w-20 h-20 opacity-80 animate-pulse"
-            />
+            
           </label>
         )}
 
@@ -227,24 +253,18 @@ function Phone({
         />
       </div>
 
-      <p className="text-[#ff6969] text-[20px] text-center font-serif mt-5 break-all">
-        {coupleName}
-      </p>
-      <p className="text-white text-center mt-2 font-serif text-[24px]">
-        Estão juntos há
-      </p>
-      <p className="text-white text-center text-lg font-bold text-[14px] mb-2">
-        {relationshipTime}
-      </p>
-      <p className="text-white text-center font-semibold text-[15px] break-all">
+      <p className="mt-3 bg-white/20 backdrop-blur-s text-center rounded-2xl p-6 md:p-8 mb-3 transform hover:scale-[1.02] transition duration-300 "
+        style={{ color: textColor }}>
         "{CoupleMessage}"
       </p>
 
       {youtubeLink && (
-        <div className="mt-4 w-full flex justify-center hover:border-[#ff6969] border-4 rounded-lg relative">
+        <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12 bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+          <p className="text-center font-bold mb-4 "
+          style={{color:textColor}}>Nossa música</p>
           <iframe
             width="100%"
-            height="200"
+            height="130"
             src={`${convertYoutubeLink(youtubeLink)}?autoplay=1`}
             title="YouTube video"
             frameBorder="0"
@@ -252,8 +272,20 @@ function Phone({
             allowFullScreen
             className="rounded-lg"
           ></iframe>
+        
         </div>
+        
       )}
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <img   src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
+            alt="heart"
+            className="w-2 h-2"
+          />
+      <p className="text-center text-[8px]"
+    
+      style={{color: textColor}}>Página criada com amor •  </p>
+      </div>
+      
     </div>
   );
 }
