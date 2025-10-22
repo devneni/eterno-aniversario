@@ -123,9 +123,9 @@ function SuccessPage({ pageUrl, coupleName, onClose, onEdit }: SuccessPageProps)
 
         <div className="mt-6 pt-4 border-t border-gray-700">
           <p className="text-center text-white text-sm">
-            Página de <span className="font-semibold text-pink-400">{coupleName}</span>
+            Página de <span className="font-semibold text-pink-700">{coupleName}</span>
           </p>
-          <p className="text-center text-gray-400 text-xs mt-2">
+          <p className="text-center text-white text-xs mt-2">
             Este link é permanente e pode ser compartilhado!
           </p>
           <p className="text-center text-gray-500 text-xs mt-1">

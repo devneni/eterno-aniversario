@@ -252,9 +252,9 @@ const SuccessPageStandalone: React.FC = () => {
             <h1 className="font-extrabold text-white text-3xl mb-2">
               Página Criada com Sucesso!
             </h1>
-            <p className="text-gray-200 text-lg">
+            <p className="text-white text-lg">
               Página de{" "}
-              <span className="font-semibold text-pink-300">{coupleName}</span>
+              <span className="font-bold text-pink-600">{coupleName}</span>
             </p>
           </div>
 
@@ -275,17 +275,17 @@ const SuccessPageStandalone: React.FC = () => {
           )}
 
           {/* Link da Página */}
-          <div className="bg-gray-800 rounded-lg p-4 mb-6">
-            <p className="text-gray-300 text-sm mb-2">
+          <div className="bg-white/10 rounded-lg p-4 mb-6">
+            <p className="text-white font-bold text-sm mb-2">
               Seu link personalizado:
             </p>
             <div className="flex items-center justify-between">
-              <code className="text-green-400 text-sm font-mono break-all flex-1 mr-2">
+              <code className="text-pink-600 text-sm font-mono break-all flex-1 mr-2">
                 {pageUrl}
               </code>
               <button
                 onClick={handleShareLink}
-                className="bg-[#ff6969] hover:bg-[#ff5252] text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm"
               >
                 Copiar
               </button>
@@ -294,12 +294,12 @@ const SuccessPageStandalone: React.FC = () => {
 
           {/* URL Única da SuccessPage */}
           {uniqueSuccessUrl && (
-            <div className="bg-purple-900/30 rounded-lg p-4 mb-6">
-              <p className="text-purple-200 text-sm mb-2">
+            <div className="bg-white/10 rounded-lg p-4 mb-6">
+              <p className="text-white font-bold text-sm mb-2">
                 Link único para edição (compartilhável):
               </p>
               <div className="flex items-center justify-between">
-                <code className="text-purple-300 text-sm font-mono break-all flex-1 mr-2">
+                <code className="text-pink-600 text-sm font-mono break-all flex-1 mr-2">
                   {uniqueSuccessUrl}
                 </code>
                 <button
@@ -325,7 +325,7 @@ const SuccessPageStandalone: React.FC = () => {
             </button>
             <button
               onClick={() => setEditing(!editing)}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
+              className="bg-red-500 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
             >
               {editing ? "Cancelar Edição" : "Editar Página"}
             </button>
@@ -352,7 +352,7 @@ const SuccessPageStandalone: React.FC = () => {
                         coupleName: e.target.value,
                       }))
                     }
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                   />
                 </div>
 
@@ -368,13 +368,13 @@ const SuccessPageStandalone: React.FC = () => {
                         coupleMessage: e.target.value,
                       }))
                     }
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                     rows={3}
                   />
                 </div>
 
                 <div>
-                  <label className="text-white text-sm mb-1 block">
+                  <label className=" text-white text-sm mb-1 block">
                     Link do YouTube
                   </label>
                   <input
@@ -386,7 +386,7 @@ const SuccessPageStandalone: React.FC = () => {
                         youtubeLink: e.target.value,
                       }))
                     }
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                     placeholder="https://www.youtube.com/watch?v=..."
                   />
                 </div>
@@ -405,7 +405,7 @@ const SuccessPageStandalone: React.FC = () => {
                           startDate: e.target.value,
                         }))
                       }
-                      className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                      className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                     />
                   </div>
                   <div>
@@ -421,7 +421,7 @@ const SuccessPageStandalone: React.FC = () => {
                           startTime: e.target.value,
                         }))
                       }
-                      className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                      className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                     />
                   </div>
                 </div>
@@ -461,9 +461,9 @@ const SuccessPageStandalone: React.FC = () => {
                         multiple
                         accept="image/*"
                         onChange={handleImageChange}
-                        className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                        className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
                       />
-                      <p className="text-gray-400 text-xs mt-1">
+                      <p className="text-white text-xs mt-1">
                         Você pode adicionar até{" "}
                         {maxImages - currentImages.length} imagens
                       </p>
@@ -476,13 +476,13 @@ const SuccessPageStandalone: React.FC = () => {
                     onClick={handleSave}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
                   >
-                    💾 Salvar Alterações
+                     Salvar Alterações
                   </button>
                   <button
                     onClick={() => setEditing(false)}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
+                    className="flex-1 bg-red-500 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
                   >
-                    ❌ Cancelar
+                     Cancelar
                   </button>
                 </div>
               </div>
