@@ -22,6 +22,54 @@ interface FallingHeart {
   delay: number;
 }
 
+// Função auxiliar para converter cores de fundo (mesma do LovePageForm)
+const getBackgroundStyle = (backgroundColor: string): string => {
+  const gradients = {
+    'purple-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)',
+    'blue-gradient': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
+    'red-gradient': 'linear-gradient(135deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)',
+    'pink-gradient': 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)',
+    'yellow-gradient': 'linear-gradient(135deg, #eab308 0%, #facc15 50%, #fde047 100%)',
+    'orange-gradient': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%)',
+    'green-gradient': 'linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #86efac 100%)',
+    'black-gradient': 'linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%)',
+    'white-gradient': 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 50%, #d1d5db 100%)',
+    'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
+  };
+
+  // Se for um gradiente pré-definido, retorna o estilo
+  if (gradients[backgroundColor as keyof typeof gradients]) {
+    return gradients[backgroundColor as keyof typeof gradients];
+  }
+
+  // Se for uma cor hexadecimal, cria um gradiente suave
+  if (backgroundColor.startsWith('#')) {
+    // Função para clarear a cor
+    const lightenColor = (color: string, percent: number) => {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return `#${(
+        0x1000000 +
+        (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)
+      ).toString(16).slice(1)}`;
+    };
+
+    const baseColor = backgroundColor;
+    const lighterColor = lightenColor(baseColor, 20);
+    const evenLighterColor = lightenColor(baseColor, 40);
+
+    return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
+  }
+
+  // Fallback para rosa
+  return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
+};
+
 function convertYoutubeLink(link: string): string {
   try {
     const url = new URL(link);
@@ -125,8 +173,12 @@ function Phone({
   const totalImagesCount = files.length > 0 ? files.length : savedImages.length;
 
   return (
-    <div className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll mb-15"
-      style={{ backgroundColor }}>
+    <div 
+      className="border-12 p-4 w-[320px] rounded-[45px] mt-50 border-[#484d52] h-150 overflow-y-auto esconde-scroll mb-15"
+      style={{ 
+        background: getBackgroundStyle(backgroundColor),
+      }}
+    >
 
       <div className="mb-4">
         <img

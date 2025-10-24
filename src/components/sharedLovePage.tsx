@@ -15,8 +15,8 @@ interface LovePageData {
   startTime: string;
   email: string;
   selectedPlan: string;
-  imagesUrl?: string[] | string | null; // Mantido para compatibilidade
-  imageFileNames?: string[]; // Nova propriedade para nomes dos arquivos
+  imagesUrl?: string[] | string | null;
+  imageFileNames?: string[];
   customSlug?: string;
   textColor?: string;
   backgroundColor?: string;
@@ -24,6 +24,54 @@ interface LovePageData {
     toDate?: () => Date;
   };
 }
+
+// Função auxiliar para converter cores de fundo
+const getBackgroundStyle = (backgroundColor: string): string => {
+  const gradients = {
+    'purple-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)',
+    'blue-gradient': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
+    'red-gradient': 'linear-gradient(135deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)',
+    'pink-gradient': 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)',
+    'yellow-gradient': 'linear-gradient(135deg, #eab308 0%, #facc15 50%, #fde047 100%)',
+    'orange-gradient': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%)',
+    'green-gradient': 'linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #86efac 100%)',
+    'black-gradient': 'linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%)',
+    'white-gradient': 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 50%, #d1d5db 100%)',
+    'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
+  };
+
+  // Se for um gradiente pré-definido, retorna o estilo
+  if (gradients[backgroundColor as keyof typeof gradients]) {
+    return gradients[backgroundColor as keyof typeof gradients];
+  }
+
+  // Se for uma cor hexadecimal, cria um gradiente suave
+  if (backgroundColor.startsWith('#')) {
+    // Função para clarear a cor
+    const lightenColor = (color: string, percent: number) => {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return `#${(
+        0x1000000 +
+        (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)
+      ).toString(16).slice(1)}`;
+    };
+
+    const baseColor = backgroundColor;
+    const lighterColor = lightenColor(baseColor, 20);
+    const evenLighterColor = lightenColor(baseColor, 40);
+
+    return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
+  }
+
+  // Fallback para rosa
+  return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
+};
 
 const SharedLovePage: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
@@ -220,7 +268,6 @@ const SharedLovePage: React.FC = () => {
     }
   }, [imageUrls.length]);
 
-
   useEffect(() => {
     if (manualCarousel && imageUrls.length > 1) {
       console.log("🎠 Iniciando carrossel manual");
@@ -308,9 +355,7 @@ const SharedLovePage: React.FC = () => {
     <div
       className="min-h-screen relative"
       style={{
-        background: `linear-gradient(135deg, ${
-          pageData.backgroundColor || "#ec4899"
-        }, ${pageData.backgroundColor || "#ef4444"})`,
+        background: getBackgroundStyle(pageData?.backgroundColor || 'pink-gradient'),
       }}
     >
       <style>

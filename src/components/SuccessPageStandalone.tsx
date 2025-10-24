@@ -70,7 +70,6 @@ const SuccessPageStandalone: React.FC = () => {
 
   const generateUniqueSuccessUrl = useCallback(() => {
     if (pageUrl && coupleName) {
-      // Criar URL única baseada no casal
       const coupleSlug = coupleName
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, "")
@@ -83,13 +82,11 @@ const SuccessPageStandalone: React.FC = () => {
         pageUrl
       )}&coupleName=${encodeURIComponent(coupleName)}`;
       setUniqueSuccessUrl(uniqueUrl);
-      console.log(" URL única da SuccessPage:", uniqueUrl);
     }
   }, [pageUrl, coupleName]);
 
   const generateQRCode = useCallback(async () => {
     try {
-      // QR Code aponta para a página compartilhada, não para a SuccessPage
       const qrCodeUrl = await QRCode.toDataURL(pageUrl, {
         width: 200,
         margin: 2,
@@ -106,18 +103,13 @@ const SuccessPageStandalone: React.FC = () => {
 
   const loadPageData = useCallback(async () => {
     try {
-      // Extrair slug da URL
       const urlParts = pageUrl.split("/");
       const slug = urlParts[urlParts.length - 1];
 
-      console.log("🔍 Carregando dados da página com slug:", slug);
-
-      // Buscar dados da página no Firestore
       const { getPageBySlug } = await import("../firebase/firebaseService");
       const data = await getPageBySlug(slug);
 
       if (data) {
-        console.log("✅ Dados carregados:", data);
         setPageData(data as LovePageData);
         const pageData = data as PageDataFromFirestore;
         setFormData({
@@ -130,11 +122,9 @@ const SuccessPageStandalone: React.FC = () => {
           backgroundColor: pageData.backgroundColor || "#ec4899",
         });
 
-        // Carregar imagens do cache
         const cachedImages = getImagesFromStorage();
         setCurrentImages(cachedImages);
 
-        // Definir limite de imagens baseado no plano
         const planLimits: { [key: string]: number } = {
           Básico: 3,
           Premium: 5,
@@ -142,7 +132,6 @@ const SuccessPageStandalone: React.FC = () => {
         };
         setMaxImages(planLimits[(data as LovePageData).selectedPlan] || 5);
       } else {
-        console.error("❌ Página não encontrada");
         alert("Página não encontrada");
       }
     } catch (error) {
@@ -160,12 +149,10 @@ const SuccessPageStandalone: React.FC = () => {
     if (url) {
       const decodedUrl = decodeURIComponent(url);
       setPageUrl(decodedUrl);
-      console.log("🔗 URL da página:", decodedUrl);
     }
     if (name) {
       const decodedName = decodeURIComponent(name);
       setCoupleName(decodedName);
-      console.log("👫 Nome do casal:", decodedName);
     }
   }, [searchParams]);
 
@@ -197,7 +184,6 @@ const SuccessPageStandalone: React.FC = () => {
         return;
       }
 
-      // Salvar no cache
       try {
         const dataUrls = await convertFilesToDataUrls(files);
         const existingImages = getImagesFromStorage();
@@ -263,150 +249,214 @@ const SuccessPageStandalone: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-xl">Carregando...</p>
+      <div className="min-h-screen bg-gradient-to-br from-pink-500 via-red-400 to-purple-600 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute top-8 left-8 w-72 h-72 bg-pink-400/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-8 right-8 w-72 h-72 bg-red-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        
+        <div className="text-white text-center z-10 backdrop-blur-sm bg-white/10 rounded-3xl p-12 border border-white/20">
+          <div className="animate-spin rounded-full h-20 w-20 border-4 border-white/30 border-t-white mx-auto mb-6"></div>
+          <p className="text-2xl font-bold mb-2">Carregando...</p>
+          <p className="text-white/80">Preparando sua página de sucesso</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">✓</span>
-            </div>
-            <h1 className="font-extrabold text-white text-3xl mb-2">
-              Página Criada com Sucesso!
-            </h1>
-            <p className="text-white text-lg">
-              Página de{" "}
-              <span className="font-bold text-pink-600">{coupleName}</span>
-            </p>
-          </div>
-
-          {/* QR Code */}
-          {qrCodeDataUrl && (
-            <div className="bg-white/10 rounded-xl p-6 mb-6 text-center">
-              <h3 className="text-white text-xl font-bold mb-4">
-                QR Code para Compartilhar
-              </h3>
-              <img src={qrCodeDataUrl} alt="QR Code" className="mx-auto mb-4" />
-              <button
-                onClick={handleShareQRCode}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-              >
-                Baixar QR Code
-              </button>
-            </div>
-          )}
-
-          {/* Link da Página */}
-          <div className="bg-white/10 rounded-lg p-4 mb-6">
-            <p className="text-white font-bold text-sm mb-2">
-              Seu link personalizado:
-            </p>
-            <div className="flex items-center justify-between">
-              <code className="text-pink-600 text-sm font-mono break-all flex-1 mr-2">
-                {pageUrl}
-              </code>
-              <button
-                onClick={handleShareLink}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm"
-              >
-                Copiar
-              </button>
-            </div>
-          </div>
-
-          {/* URL Única da SuccessPage */}
-          {uniqueSuccessUrl && (
-            <div className="bg-white/10 rounded-lg p-4 mb-6">
-              <p className="text-white font-bold text-sm mb-2">
-                Link único para edição (compartilhável):
+    <div className="min-h-screen bg-gradient-to-br from-pink-500 via-red-400 to-purple-600 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-black/10"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+      
+      <div className="relative z-10 p-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Main Success Card */}
+          <div className="bg-white/15 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-6">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-white/20 to-white/10 p-8 text-center">
+              <div className="relative inline-block mb-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto shadow-2xl">
+                  <span className="text-4xl text-white">✓</span>
+                </div>
+                <div className="absolute inset-0 animate-ping bg-green-400 rounded-full opacity-30"></div>
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 drop-shadow-2xl">
+                Página Criada com Sucesso!
+              </h1>
+              <p className="text-xl text-white/90">
+                Página de{" "}
+                <span className="font-bold  bg-gradient-to-r from-pink-200 to-red-200 bg-clip-text text-transparent">
+                  {coupleName}
+                </span>
               </p>
-              <div className="flex items-center justify-between">
-                <code className="text-pink-600 text-sm font-mono break-all flex-1 mr-2">
-                  {uniqueSuccessUrl}
-                </code>
+            </div>
+
+            <div className="p-8">
+              {/* QR Code Section */}
+              {qrCodeDataUrl && (
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 text-center border border-white/10">
+                  <h3 className="text-2xl font-bold text-white mb-6 flex items-center justify-center gap-3">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+                      QR Code para Compartilhar
+                    </span>
+                  </h3>
+                  
+                  <div className="relative inline-block">
+                    <img 
+                      src={qrCodeDataUrl} 
+                      alt="QR Code" 
+                      className="mx-auto mb-6 rounded-2xl shadow-2xl border-4 border-white/20" 
+                    />
+                    <div className="absolute -inset-4 bg-gradient-to-r from-pink-500 to-purple-600 rounded-3xl blur-lg opacity-20"></div>
+                  </div>
+                  
+                  <button
+                    onClick={handleShareQRCode}
+                    className="group bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
+                  >
+                   
+                    Baixar QR Code
+                  </button>
+                </div>
+              )}
+
+              {/* Links Section */}
+              <div className="space-y-6 mb-8">
+                {/* Page Link */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                     
+                    </div>
+                    <h4 className="text-white font-bold text-lg">Seu link personalizado</h4>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                    <code className="flex-1 bg-black/30 backdrop-blur-sm text-pink-200 text-sm font-mono p-4 rounded-xl border border-white/10 break-all">
+                      {pageUrl}
+                    </code>
+                    <button
+                      onClick={handleShareLink}
+                      className="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
+                    >
+                     
+                      Copiar Link
+                    </button>
+                  </div>
+                </div>
+
+                {/* Edit Link */}
+                {uniqueSuccessUrl && (
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        
+                      </div>
+                      <h4 className="text-white font-bold text-lg">Link de edição</h4>
+                    </div>
+                    
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                      <code className="flex-1 bg-black/30 backdrop-blur-sm text-green-200 text-sm font-mono p-4 rounded-xl border border-white/10 break-all">
+                        {uniqueSuccessUrl}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(uniqueSuccessUrl);
+                          alert("Link de edição copiado!");
+                        }}
+                        className="group bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
+                      >
+                        
+                        Copiar Link
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(uniqueSuccessUrl);
-                    alert("Link de edição copiado!");
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm"
+                  onClick={() => window.open(pageUrl, "_blank")}
+                  className="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                 >
-                  Copiar
+              
+                  Ver Página
+                </button>
+                <button
+                  onClick={() => setEditing(!editing)}
+                  className={`group font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 ${
+                    editing 
+                      ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                      : "bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
+                  }`}
+                >
+                  <span>{editing ? "" : ""}</span>
+                  {editing ? "Cancelar Edição" : "Editar Página"}
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Botões de Ação */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <button
-              onClick={() => window.open(pageUrl, "_blank")}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
-            >
-              Abrir Página
-            </button>
-            <button
-              onClick={() => setEditing(!editing)}
-              className="bg-red-500 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
-            >
-              {editing ? "Cancelar Edição" : "Editar Página"}
-            </button>
           </div>
 
-          {/* Formulário de Edição */}
+          {/* Edit Form */}
           {editing && (
-            <div className="bg-white/10 rounded-xl p-6 mb-6">
-              <h3 className="text-white text-xl font-bold mb-4">
-                Editar Página
-              </h3>
+            <div className="bg-white/15 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-8 mb-6">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-black text-white mb-2 flex items-center justify-center gap-3">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+                    Editar Página
+                  </span>
+                </h3>
+                <p className="text-white/70">Faça alterações na sua página de amor</p>
+              </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-white text-sm mb-1 block">
-                    Nome do Casal
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.coupleName}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        coupleName: e.target.value,
-                      }))
-                    }
-                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
-                  />
+              <div className="space-y-8">
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-white font-semibold mb-3 block text-lg">
+                       Nome do Casal
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.coupleName}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          coupleName: e.target.value,
+                        }))
+                      }
+                      className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
+                      placeholder="Digite o nome do casal"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-white font-semibold mb-3 block text-lg">
+                      Mensagem do Casal
+                    </label>
+                    <textarea
+                      value={formData.coupleMessage}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          coupleMessage: e.target.value,
+                        }))
+                      }
+                      className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300 resize-none"
+                      rows={3}
+                      placeholder="Escreva uma mensagem especial..."
+                    />
+                  </div>
                 </div>
 
+                {/* YouTube Link */}
                 <div>
-                  <label className="text-white text-sm mb-1 block">
-                    Mensagem do Casal
-                  </label>
-                  <textarea
-                    value={formData.coupleMessage}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        coupleMessage: e.target.value,
-                      }))
-                    }
-                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className=" text-white text-sm mb-1 block">
-                    Link do YouTube
+                  <label className="text-white font-semibold mb-3 block text-lg">
+                     Link do YouTube
                   </label>
                   <input
                     type="text"
@@ -417,15 +467,16 @@ const SuccessPageStandalone: React.FC = () => {
                         youtubeLink: e.target.value,
                       }))
                     }
-                    className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                    className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
                     placeholder="https://www.youtube.com/watch?v=..."
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Date & Time */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-white text-sm mb-1 block">
-                      Data de Início
+                    <label className="text-white font-semibold mb-3 block text-lg">
+                       Data de Início
                     </label>
                     <input
                       type="date"
@@ -436,12 +487,12 @@ const SuccessPageStandalone: React.FC = () => {
                           startDate: e.target.value,
                         }))
                       }
-                      className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                      className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
                     />
                   </div>
                   <div>
-                    <label className="text-white text-sm mb-1 block">
-                      Hora de Início
+                    <label className="text-white font-semibold mb-3 block text-lg">
+                       Hora de Início
                     </label>
                     <input
                       type="time"
@@ -452,23 +503,23 @@ const SuccessPageStandalone: React.FC = () => {
                           startTime: e.target.value,
                         }))
                       }
-                      className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                      className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
                     />
                   </div>
                 </div>
 
-                {/* Seletores de Cor */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-white">
-                    Personalizar Cores
+                {/* Color Customization */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                  <h4 className="text-2xl font-bold text-white mb-6 text-center">
+                     Personalizar Cores
                   </h4>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-300">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <label className="text-white font-semibold text-lg">
                         Cor do Texto
                       </label>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4">
                         <input
                           type="color"
                           value={formData.textColor}
@@ -478,7 +529,7 @@ const SuccessPageStandalone: React.FC = () => {
                               textColor: e.target.value,
                             }))
                           }
-                          className="w-12 h-12 rounded-lg border-2 border-gray-600 cursor-pointer"
+                          className="w-16 h-16 rounded-2xl border-2 border-white/30 cursor-pointer shadow-lg"
                         />
                         <input
                           type="text"
@@ -489,17 +540,17 @@ const SuccessPageStandalone: React.FC = () => {
                               textColor: e.target.value,
                             }))
                           }
-                          className="flex-1 px-3 py-2 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                          className="flex-1 p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
                           placeholder="#ffffff"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-300">
+                    <div className="space-y-4">
+                      <label className="text-white font-semibold text-lg">
                         Cor de Fundo
                       </label>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4">
                         <input
                           type="color"
                           value={formData.backgroundColor}
@@ -509,7 +560,7 @@ const SuccessPageStandalone: React.FC = () => {
                               backgroundColor: e.target.value,
                             }))
                           }
-                          className="w-12 h-12 rounded-lg border-2 border-gray-600 cursor-pointer"
+                          className="w-16 h-16 rounded-2xl border-2 border-white/30 cursor-pointer shadow-lg"
                         />
                         <input
                           type="text"
@@ -520,46 +571,45 @@ const SuccessPageStandalone: React.FC = () => {
                               backgroundColor: e.target.value,
                             }))
                           }
-                          className="flex-1 px-3 py-2 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                          className="flex-1 p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
                           placeholder="#ec4899"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Preview das cores */}
-                  <div
-                    className="p-4 rounded-lg border-2 border-gray-600"
-                    style={{ backgroundColor: formData.backgroundColor }}
-                  >
-                    <p
-                      className="text-center font-semibold"
-                      style={{ color: formData.textColor }}
-                    >
-                      Preview: {formData.coupleName || "Nome do Casal"}
+                  {/* Color Preview */}
+                  <div className="mt-6 p-6 rounded-2xl border-2 border-white/20 shadow-lg" style={{ backgroundColor: formData.backgroundColor }}>
+                    <p className="text-center font-bold text-xl" style={{ color: formData.textColor }}>
+                      {formData.coupleName || "Preview do Nome do Casal"}
                     </p>
                   </div>
                 </div>
 
-                {/* Gerenciamento de Imagens */}
-                <div>
-                  <label className="text-white text-sm mb-1 block">
-                    Imagens ({currentImages.length}/{maxImages})
-                  </label>
+                {/* Image Management */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="text-2xl font-bold text-white">
+                       Gerenciar Imagens
+                    </h4>
+                    <span className="bg-white/20 px-4 py-2 rounded-full text-white font-semibold">
+                      {currentImages.length}/{maxImages}
+                    </span>
+                  </div>
 
-                  {/* Imagens Atuais */}
+                  {/* Current Images */}
                   {currentImages.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       {currentImages.map((image, index) => (
-                        <div key={index} className="relative">
+                        <div key={index} className="relative group">
                           <img
                             src={image}
                             alt={`Imagem ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg"
+                            className="w-full h-24 object-cover rounded-xl shadow-lg group-hover:scale-105 transition-transform duration-300"
                           />
                           <button
                             onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-all duration-200 shadow-lg"
                           >
                             ×
                           </button>
@@ -568,35 +618,47 @@ const SuccessPageStandalone: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Adicionar Novas Imagens */}
+                  {/* Add Images */}
                   {currentImages.length < maxImages && (
-                    <div>
+                    <div className="border-2 border-dashed border-white/30 rounded-2xl p-8 text-center hover:border-white/50 transition-all duration-300">
                       <input
                         type="file"
                         multiple
                         accept="image/*"
                         onChange={handleImageChange}
-                        className="w-full p-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white"
+                        className="hidden"
+                        id="image-upload"
                       />
-                      <p className="text-white text-xs mt-1">
-                        Você pode adicionar até{" "}
-                        {maxImages - currentImages.length} imagens
-                      </p>
+                      <label
+                        htmlFor="image-upload"
+                        className="cursor-pointer block"
+                      >
+                        
+                        <p className="text-white font-semibold mb-2">
+                          Clique para adicionar imagens
+                        </p>
+                        <p className="text-white/70 text-sm">
+                          Você pode adicionar até {maxImages - currentImages.length} imagens
+                        </p>
+                      </label>
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-3">
+              
+                <div className="flex flex-col md:flex-row gap-4">
                   <button
                     onClick={handleSave}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
+                    className="flex-1 group bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                   >
+                    <span></span>
                     Salvar Alterações
                   </button>
                   <button
                     onClick={() => setEditing(false)}
-                    className="flex-1 bg-red-500 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
+                    className="flex-1 group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                   >
+                    <span></span>
                     Cancelar
                   </button>
                 </div>
@@ -604,9 +666,10 @@ const SuccessPageStandalone: React.FC = () => {
             </div>
           )}
 
-          <div className="text-center text-gray-300 text-sm">
-            <p>Este link é permanente e pode ser compartilhado!</p>
-            <p className="mt-1">Use o QR Code para compartilhar facilmente</p>
+          {/* Footer */}
+          <div className="text-center text-white/70 text-sm backdrop-blur-sm bg-white/5 rounded-2xl p-6 border border-white/10">
+            <p className="font-semibold mb-2"> Este link é permanente e pode ser compartilhado!</p>
+            <p>Use o QR Code para compartilhar facilmente com amigos e familiares</p>
           </div>
         </div>
       </div>

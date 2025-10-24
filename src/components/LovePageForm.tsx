@@ -32,16 +32,63 @@ interface LovePageFormProps {
   setBackgroundColor: (color: string) => void;
 }
 
-
 const MUSIC_LINKS: Record<string, string> = {
   "Ed Sheeran - Perfect": "https://www.youtube.com/watch?v=2Vv-BfVoq4g",
   "James Arthur - Say You Won't Let Go": "https://www.youtube.com/watch?v=0yW7w8F2TVA",
-  "Luisa Sonza, Vitão - Flores": "hhttps://www.youtube.com/watch?v=1EnrK8TzVDQ&list=RD1EnrK8TzVDQ&start_radio=1",
+  "Luisa Sonza, Vitão - Flores": "https://www.youtube.com/watch?v=1EnrK8TzVDQ&list=RD1EnrK8TzVDQ&start_radio=1",
   "Christina Perri - A Thousand Years": "https://www.youtube.com/watch?v=rtOvBOTyX00",
   "Tiago Iorc - Amei Te Ver": "https://www.youtube.com/watch?v=W62-ZG9tPpI&list=RDW62-ZG9tPpI&start_radio=1",
   "John Legend - All of Me": "https://www.youtube.com/watch?v=450p7goxZqg",
   "Jorge & Mateus - Pra Sempre Com Voce": "https://www.youtube.com/watch?v=VWRkQARH-9o&list=RDVWRkQARH-9o&start_radio=1",
   "Marisa Monte - Amor I Love You": "https://www.youtube.com/watch?v=2CPHbEIC6EM&list=RD2CPHbEIC6EM&start_radio=1"
+};
+
+// Função auxiliar para converter cores de fundo
+const getBackgroundStyle = (backgroundColor: string): string => {
+  const gradients = {
+    'purple-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)',
+    'blue-gradient': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
+    'red-gradient': 'linear-gradient(135deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)',
+    'pink-gradient': 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)',
+    'yellow-gradient': 'linear-gradient(135deg, #eab308 0%, #facc15 50%, #fde047 100%)',
+    'orange-gradient': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%)',
+    'green-gradient': 'linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #86efac 100%)',
+    'black-gradient': 'linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%)',
+    'white-gradient': 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 50%, #d1d5db 100%)',
+    'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
+  };
+
+  // Se for um gradiente pré-definido, retorna o estilo
+  if (gradients[backgroundColor as keyof typeof gradients]) {
+    return gradients[backgroundColor as keyof typeof gradients];
+  }
+
+  // Se for uma cor hexadecimal, cria um gradiente suave
+  if (backgroundColor.startsWith('#')) {
+    // Função para clarear a cor
+    const lightenColor = (color: string, percent: number) => {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return `#${(
+        0x1000000 +
+        (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)
+      ).toString(16).slice(1)}`;
+    };
+
+    const baseColor = backgroundColor;
+    const lighterColor = lightenColor(baseColor, 20);
+    const evenLighterColor = lightenColor(baseColor, 40);
+
+    return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
+  }
+
+  // Fallback para rosa
+  return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
 };
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
@@ -372,48 +419,242 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         />
 
        
-        <div className="space-y-4 bg-gray-800 border-gray-700 border rounded-lg hover:border-[#ff6969] ">
-          <h3 className="text-lg font-semibold text-white text-center pt-4">
+        <div className="space-y-4 bg-gray-800 border-gray-700 border rounded-lg hover:border-[#ff6969] p-4">
+          <h3 className="text-lg font-semibold text-white text-center">
             Personalize as Cores
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-2">
-            <div className="space-y-2 mb-4">
-              <label className="text-sm text-gray-300 " >Cor do Texto</label>
-              <div className="flex items-center space-x-2">
+          {/* Cor do Texto - Opções Pré-definidas */}
+          <div className="space-y-3">
+            <label className="text-sm text-gray-300">Cor do Texto</label>
+            <div className="flex flex-wrap gap-3">
+              {/* Opção Branco */}
+              <button
+                type="button"
+                onClick={() => setTextColor('#ffffff')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                  textColor === '#ffffff' 
+                    ? 'border-white bg-white/20' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="w-6 h-6 rounded-full bg-white border border-gray-300"></div>
+                <span className="text-white text-sm">Branco</span>
+              </button>
+
+              {/* Opção Preto */}
+              <button
+                type="button"
+                onClick={() => setTextColor('#000000')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                  textColor === '#000000' 
+                    ? 'border-white bg-white/20' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="w-6 h-6 rounded-full bg-black border border-gray-300"></div>
+                <span className="text-white text-sm">Preto</span>
+              </button>
+
+              {/* Seletor de Cor Personalizada */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-600">
                 <input
                   type="color"
                   value={textColor}
                   onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 rounded-lg  border-gray-600 cursor-pointer hover:border-[#ff6969] border-4"
+                  className="w-6 h-6 rounded cursor-pointer"
                 />
-                <input
-                  type="text"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="flex-1 px-1 py-2 bg-gray-800 border-4 border-gray-600 hover:border-[#ff6969] rounded-lg text-white"
-                  placeholder="#ffffff"
-                />
+                <span className="text-white text-sm">Personalizada</span>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2 mb-4">
-              <label className="text-sm text-gray-300">Cor de Fundo</label>
-              <div className="flex items-center space-x-3">
+          {/* Cor de Fundo - Gradientes Pré-definidos */}
+          <div className="space-y-3">
+            <label className="text-sm text-gray-300">Cor de Fundo</label>
+            
+            {/* Gradientes Pré-definidos */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {/* Roxo */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('purple-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'purple-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Roxo</span>
+              </button>
+
+              {/* Azul */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('blue-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'blue-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Azul</span>
+              </button>
+
+              {/* Vermelho */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('red-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'red-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Vermelho</span>
+              </button>
+
+              {/* Rosa */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('pink-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'pink-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-pink-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Rosa</span>
+              </button>
+
+              {/* Amarelo */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('yellow-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'yellow-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-yellow-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">Amarelo</span>
+              </button>
+
+              {/* Laranja */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('orange-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'orange-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Laranja</span>
+              </button>
+
+              {/* Verde */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('green-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'green-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-400"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Verde</span>
+              </button>
+
+              {/* Preto */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('black-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'black-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Preto</span>
+              </button>
+
+              {/* Branco */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('white-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'white-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">Branco</span>
+              </button>
+
+              {/* Cinza */}
+              <button
+                type="button"
+                onClick={() => setBackgroundColor('gray-gradient')}
+                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
+                  backgroundColor === 'gray-gradient' 
+                    ? 'border-white ring-2 ring-white' 
+                    : 'border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-300"></div>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Cinza</span>
+              </button>
+            </div>
+
+            {/* Seletor de Cor Personalizada */}
+            <div className="mt-4 p-3 bg-gray-700 rounded-lg">
+              <label className="text-sm text-gray-300 mb-2 block">Cor Personalizada</label>
+              <div className="flex items-center gap-4">
                 <input
                   type="color"
-                  value={backgroundColor}
+                  value={backgroundColor.startsWith('#') ? backgroundColor : '#ec4899'}
                   onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="w-12 h-12 rounded-lg border-4 border-gray-600 hover:border-[#ff6969] cursor-pointer"
+                  className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-500"
                 />
-                <input
-                  type="text"
-                  value={backgroundColor}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="flex-1 px-1 py-2 bg-gray-800 border-4 border-gray-600 rounded-lg hover:border-[#ff6969] text-white"
-                  placeholder="#ec4899"
-                />
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={backgroundColor.startsWith('#') ? backgroundColor : '#ec4899'}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400"
+                    placeholder="#hexcolor"
+                  />
+                
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Preview das Cores */}
+          <div className="mt-4 p-3 bg-gray-700 rounded-lg">
+            <label className="text-sm text-gray-300 mb-2 block">Preview</label>
+            <div 
+              className="h-20 rounded-lg flex items-center justify-center transition-all duration-300"
+              style={{ 
+                background: getBackgroundStyle(backgroundColor),
+              }}
+            >
+              <span 
+                className="text-lg font-semibold px-4 py-2 rounded"
+                style={{ color: textColor }}
+              >
+                Seu texto aparecerá assim
+              </span>
             </div>
           </div>
         </div>
@@ -536,19 +777,18 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       </div>
 
       {isModalOpen && selectedPlan && (
-  <PaymentModal
-    initialPlanValue={selectedPlan.priceDiscounted}
-    onCancel={() => setIsModalOpen(false)}
-    onConfirm={handleConfirmPaymentAndCreation}
-    userData={{
-      email: email,
-      coupleName: coupleName,
-      planTitle: selectedPlan.title,
-      photosCount: selectedPlan.photos
-    }}
-  />
-)}
-
+        <PaymentModal
+          initialPlanValue={selectedPlan.priceDiscounted}
+          onCancel={() => setIsModalOpen(false)}
+          onConfirm={handleConfirmPaymentAndCreation}
+          userData={{
+            email: email,
+            coupleName: coupleName,
+            planTitle: selectedPlan.title,
+            photosCount: selectedPlan.photos
+          }}
+        />
+      )}
 
       {showSuccessPage && (
         <SuccessPage
