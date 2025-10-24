@@ -4,7 +4,7 @@ import { ImMail } from "react-icons/im";
 
 function Footer() {
   return (
-    <div className=" bg-[#121212] py-4 pb-8 ">
+    <div className=" mb-8 ">
       <footer className="font-semibold text-center text-[10px] text-white">
         Eterno Aniversário © - Todos os direitos reservados desenvolvido por
         neni

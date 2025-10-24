@@ -260,6 +260,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         type: "success",
       });
 
+      
+
       localStorage.removeItem("coupleName");
       localStorage.removeItem("CoupleMessage");
       localStorage.removeItem("youtubeLink");
@@ -292,7 +294,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     "w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition duration-200";
 
   return (
-    <div className="bg-[#121212] min-h-screen p-8 text-white font-sans">
+    <div className=" min-h-screen p-8 text-white font-sans">
       <div className="flex justify-center space-x-4 mb-8">
         {plansData.map((plan) => (
           <PlanCard
@@ -357,7 +359,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-2">
             <div className="space-y-2 mb-4">
               <label className="text-sm text-gray-300 " >Cor do Texto</label>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <input
                   type="color"
                   value={textColor}
@@ -368,7 +370,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                   type="text"
                   value={textColor}
                   onChange={(e) => setTextColor(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-800 border-4 border-gray-600 hover:border-[#ff6969] rounded-lg text-white"
+                  className="flex-1 px-1 py-2 bg-gray-800 border-4 border-gray-600 hover:border-[#ff6969] rounded-lg text-white"
                   placeholder="#ffffff"
                 />
               </div>
@@ -387,7 +389,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                   type="text"
                   value={backgroundColor}
                   onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-800 border-4 border-gray-600 rounded-lg hover:border-[#ff6969] text-white"
+                  className="flex-1 px-1 py-2 bg-gray-800 border-4 border-gray-600 rounded-lg hover:border-[#ff6969] text-white"
                   placeholder="#ec4899"
                 />
               </div>

@@ -48,3 +48,6 @@ export const plansData: Plan[] = [
     ],
   },
 ];
+
+
+export default plansData;
