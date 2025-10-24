@@ -30,8 +30,19 @@ interface LovePageFormProps {
   setTextColor: (color: string) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
- 
 }
+
+
+const MUSIC_LINKS: Record<string, string> = {
+  "Ed Sheeran - Perfect": "https://www.youtube.com/watch?v=2Vv-BfVoq4g",
+  "James Arthur - Say You Won't Let Go": "https://www.youtube.com/watch?v=0yW7w8F2TVA",
+  "Luisa Sonza, Vitão - Flores": "hhttps://www.youtube.com/watch?v=1EnrK8TzVDQ&list=RD1EnrK8TzVDQ&start_radio=1",
+  "Christina Perri - A Thousand Years": "https://www.youtube.com/watch?v=rtOvBOTyX00",
+  "Tiago Iorc - Amei Te Ver": "https://www.youtube.com/watch?v=W62-ZG9tPpI&list=RDW62-ZG9tPpI&start_radio=1",
+  "John Legend - All of Me": "https://www.youtube.com/watch?v=450p7goxZqg",
+  "Jorge & Mateus - Pra Sempre Com Voce": "https://www.youtube.com/watch?v=VWRkQARH-9o&list=RDVWRkQARH-9o&start_radio=1",
+  "Marisa Monte - Amor I Love You": "https://www.youtube.com/watch?v=2CPHbEIC6EM&list=RD2CPHbEIC6EM&start_radio=1"
+};
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
   coupleName,
@@ -53,7 +64,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   setTextColor,
   backgroundColor,
   setBackgroundColor,
- 
 }) => {
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
@@ -66,8 +76,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [createdPageUrl, setCreatedPageUrl] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
- 
- 
+  const [selectedMusicTip, setSelectedMusicTip] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,8 +84,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     text: string;
     type: string;
   }>({ text: "", type: "" });
-
-;
 
   useEffect(() => {
     const savedName = localStorage.getItem("coupleName");
@@ -106,6 +113,21 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     setTextColor, 
     setBackgroundColor, 
   ]);
+
+  // Função para lidar com o clique nas dicas de música
+  const handleMusicTipClick = (musicName: string) => {
+    const link = MUSIC_LINKS[musicName];
+    if (link) {
+      setYoutubeLink(link);
+      setSelectedMusicTip(musicName);
+    }
+  };
+
+  // Função para limpar a seleção de música
+  const clearMusicSelection = () => {
+    setYoutubeLink('');
+    setSelectedMusicTip(null);
+  };
 
   const handleChangeName = (name: string) => {
     setCoupleName(name);
@@ -259,7 +281,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         text: " Página criada com sucesso!",
         type: "success",
       });
-
       
 
       localStorage.removeItem("coupleName");
@@ -395,9 +416,6 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
               </div>
             </div>
           </div>
-
-
-          
         </div>
 
         <textarea
@@ -410,22 +428,50 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
         {selectedPlan.music && (
           <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Link do Youtube (opcional)"
-              className={inputClass}
-              value={youtubeLink}
-              onChange={(e) => setYoutubeLink(e.target.value)}
-            />
+            <div className="flex items-center justify-between">
+              <input
+                type="text"
+                placeholder="Link do Youtube (opcional)"
+                className={inputClass}
+                value={youtubeLink}
+                onChange={(e) => setYoutubeLink(e.target.value)}
+              />
+              {youtubeLink && (
+                <button
+                  type="button"
+                  onClick={clearMusicSelection}
+                  className="ml-2 text-sm text-gray-400 hover:text-white transition duration-200"
+                  title="Limpar seleção"
+                >
+                  ×
+                </button>
+              )}
+            </div>
 
             <div>
-              <p className="mb-2 text-sm text-gray-400">Dicas de músicas</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-gray-400">Dicas de músicas</p>
+                {selectedMusicTip && (
+                  <button
+                    type="button"
+                    onClick={clearMusicSelection}
+                    className="text-xs text-gray-400 hover:text-white transition duration-200"
+                  >
+                    Limpar seleção
+                  </button>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {selectedPlan.musicTips?.map((tip, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    className="px-3 py-1 bg-gray-700 text-sm rounded-full hover:bg-[#ff6969] transition duration-200"
+                    className={`px-3 py-1 text-sm rounded-full transition duration-200 ${
+                      selectedMusicTip === tip 
+                        ? 'bg-[#ff6969] text-white' 
+                        : 'bg-gray-700 hover:bg-[#ff6969]'
+                    }`}
+                    onClick={() => handleMusicTipClick(tip)}
                   >
                     {tip}
                   </button>
@@ -490,20 +536,19 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       </div>
 
       {isModalOpen && selectedPlan && (
-        <PaymentModal
-          initialPlanValue={selectedPlan.priceDiscounted}
-          onCancel={() => setIsModalOpen(false)}
-          onConfirm={handleConfirmPaymentAndCreation}
-          onGeneratePix={async () => ({
-            qrCode: "",
-            qrCodeBase64: "",
-            paymentId: "",
-            qrCodeImageUrl: "",
-            pixKey: "",
-            amount: 0,
-          })}
-        />
-      )}
+  <PaymentModal
+    initialPlanValue={selectedPlan.priceDiscounted}
+    onCancel={() => setIsModalOpen(false)}
+    onConfirm={handleConfirmPaymentAndCreation}
+    userData={{
+      email: email,
+      coupleName: coupleName,
+      planTitle: selectedPlan.title,
+      photosCount: selectedPlan.photos
+    }}
+  />
+)}
+
 
       {showSuccessPage && (
         <SuccessPage
