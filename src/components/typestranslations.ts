@@ -63,6 +63,14 @@ export interface TranslationKeys {
   faq9answer: string;
   faq10question: string;
   faq10answer: string;
+  footer: string;
+  hour: string;
+  hours: string;
+  minute: string; 
+  minutes: string;
+  second: string;
+  seconds: string;
+  
 }
 
 export type Language = 'pt' | 'en';

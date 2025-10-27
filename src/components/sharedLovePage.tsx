@@ -4,7 +4,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import { calculateRelationshipTime } from "./calculateRelationshipTime";
 import { getPageBySlug } from "../firebase/firebaseService";
-import { getImagesFromStorage } from "./imageStorage";
+import { useLanguage } from './useLanguage';
+import { translations } from './translations';
 
 interface LovePageData {
   id?: string;
@@ -74,13 +75,15 @@ const getBackgroundStyle = (backgroundColor: string): string => {
 };
 
 const SharedLovePage: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const { pageId } = useParams<{ pageId: string }>();
   const [pageData, setPageData] = useState<LovePageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [manualCarousel, setManualCarousel] = useState(false);
   const [relationshipTime, setRelationshipTime] = useState<string>("");
 
   const processImageUrls = (
@@ -91,52 +94,20 @@ const SharedLovePage: React.FC = () => {
     console.log("🔄 URLs recebidas:", urls);
     console.log("🔄 Nomes dos arquivos:", fileNames);
 
-    // Se temos nomes de arquivos, usar cache
-    if (fileNames && fileNames.length > 0) {
-      console.log("📸 Usando sistema de cache com nomes de arquivos");
-      const cachedImages = getImagesFromStorage();
-      console.log("📸 Imagens em cache:", cachedImages.length);
-
-      // Retornar as imagens do cache (assumindo que estão na mesma ordem)
-      const validImages = cachedImages.filter(
-        (img) => img && img.trim() !== ""
+    // USAR APENAS AS URLs DO FIREBASE STORAGE
+    if (urls && Array.isArray(urls) && urls.length > 0) {
+      console.log("📸 Usando URLs do Firebase Storage");
+      const validUrls = urls.filter(url => 
+        url && 
+        typeof url === 'string' && 
+        url.trim() !== '' && 
+        url.startsWith('https://')
       );
-      console.log("✅ Imagens válidas do cache:", validImages.length);
-      return validImages;
+      console.log("✅ URLs válidas do Storage:", validUrls.length);
+      return validUrls;
     }
 
-    // Fallback para o sistema antigo de URLs
-    console.log("🔄 Usando sistema antigo de URLs");
-    if (!urls) {
-      console.log("❌ URLs é null/undefined");
-      return [];
-    }
-
-    if (typeof urls === "string") {
-      console.log("📝 URLs é string:", urls);
-      return urls.trim() !== "" ? [urls] : [];
-    }
-
-    if (Array.isArray(urls)) {
-      console.log("📋 URLs é array com", urls.length, "itens");
-      console.log("📋 Conteúdo do array:", urls);
-
-      const filtered = urls.filter((url) => {
-        const isValid =
-          url &&
-          typeof url === "string" &&
-          url.trim() !== "" &&
-          (url.startsWith("http://") || url.startsWith("https://"));
-
-        console.log("🔍 URL:", url, "é válida?", isValid);
-        return isValid;
-      });
-
-      console.log("✅ URLs filtradas:", filtered);
-      return filtered;
-    }
-
-    console.log("❌ URLs não é string nem array");
+    console.log("❌ Nenhuma imagem disponível");
     return [];
   };
 
@@ -144,30 +115,31 @@ const SharedLovePage: React.FC = () => {
     if (pageData) {
       const time = calculateRelationshipTime(
         pageData.startDate,
-        pageData.startTime
+        pageData.startTime,
+        language
       );
       setRelationshipTime(time);
     }
-  }, [pageData]);
+  }, [pageData, language]);
 
   useEffect(() => {
     const loadPageData = async () => {
       if (!pageId) {
-        setError("ID da página não encontrado");
+        setError(language === 'pt' ? "ID da página não encontrado" : "Page ID not found");
         setLoading(false);
         return;
       }
 
       try {
-        console.log(" Buscando página:", pageId);
+        console.log("🔍 Buscando página:", pageId);
 
         let pageData = null;
 
-        console.log(" Buscando por slug personalizado...");
+        console.log("🔍 Buscando por slug personalizado...");
         pageData = await getPageBySlug(pageId);
 
         if (!pageData) {
-          console.log(" Buscando como ID normal...");
+          console.log("🔍 Buscando como ID normal...");
           const docRef = doc(db, "paginas", pageId);
           const docSnap = await getDoc(docRef);
 
@@ -178,11 +150,9 @@ const SharedLovePage: React.FC = () => {
 
         if (pageData) {
           const data = pageData as LovePageData;
-          console.log(" Dados recebidos do Firestore:", data);
-          console.log(" URLs de imagem recebidas:", data.imagesUrl);
-          console.log(" Nomes dos arquivos:", data.imageFileNames);
-          console.log(" Tipo das URLs:", typeof data.imagesUrl);
-          console.log(" É array?", Array.isArray(data.imagesUrl));
+          console.log("✅ Dados recebidos do Firestore:", data);
+          console.log("📸 URLs de imagem recebidas:", data.imagesUrl);
+          console.log("📸 Nomes dos arquivos:", data.imageFileNames);
 
           setPageData(data);
 
@@ -190,28 +160,25 @@ const SharedLovePage: React.FC = () => {
             data.imagesUrl,
             data.imageFileNames
           );
-          console.log(" URLs processadas:", processedUrls);
-          console.log(
-            " Quantidade de URLs processadas:",
-            processedUrls.length
-          );
+          console.log("✅ URLs processadas:", processedUrls);
+          console.log("📸 Quantidade de URLs processadas:", processedUrls.length);
           setImageUrls(processedUrls);
 
           updateRelationshipTime();
         } else {
-          console.log(" Página não encontrada no Firestore");
-          setError("Página não encontrada");
+          console.log("❌ Página não encontrada no Firestore");
+          setError(language === 'pt' ? "Página não encontrada" : "Page not found");
         }
       } catch (err) {
-        console.error(" Erro ao carregar página:", err);
-        setError("Erro ao carregar a página");
+        console.error("❌ Erro ao carregar página:", err);
+        setError(language === 'pt' ? "Erro ao carregar a página" : "Error loading page");
       } finally {
         setLoading(false);
       }
     };
 
     loadPageData();
-  }, [pageId, updateRelationshipTime]);
+  }, [pageId, updateRelationshipTime, language]);
 
   useEffect(() => {
     if (!pageData) return;
@@ -223,68 +190,30 @@ const SharedLovePage: React.FC = () => {
     return () => clearInterval(interval);
   }, [pageData, updateRelationshipTime]);
 
-  // Carrossel automático - só executa quando imageUrls muda
+  // Carrossel automático
   useEffect(() => {
     console.log("🔄 Configurando carrossel de imagens...");
     console.log("📸 Total de imagens:", imageUrls.length);
-    console.log("📸 URLs das imagens:", imageUrls);
 
     if (imageUrls.length <= 1) {
       console.log("⚠️ Menos de 2 imagens, carrossel desabilitado");
       return;
     }
 
-    console.log("✅ Iniciando carrossel automático (3 segundos)");
+    console.log("✅ Iniciando carrossel automático (7 segundos)");
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => {
         const nextIndex = prev === imageUrls.length - 1 ? 0 : prev + 1;
-        console.log(` Mudando imagem: ${prev} -> ${nextIndex}`);
-        console.log(` Nova URL:`, imageUrls[nextIndex]);
         return nextIndex;
       });
     }, 7000);
 
     return () => {
-      console.log(" Parando carrossel");
+      console.log("🛑 Parando carrossel");
       clearInterval(interval);
     };
   }, [imageUrls]);
-
-  useEffect(() => {
-    if (imageUrls.length > 0) {
-      console.log(
-        ` Exibindo imagem ${currentImageIndex + 1}/${imageUrls.length}`
-      );
-    }
-  }, [currentImageIndex, imageUrls.length]);
-
-  useEffect(() => {
-    if (imageUrls.length > 1) {
-      console.log("🎠 Ativando carrossel automático");
-      setManualCarousel(true);
-    } else {
-      setManualCarousel(false);
-    }
-  }, [imageUrls.length]);
-
-  useEffect(() => {
-    if (manualCarousel && imageUrls.length > 1) {
-      console.log("🎠 Iniciando carrossel manual");
-      const interval = setInterval(() => {
-        setCurrentImageIndex((prev) => {
-          const nextIndex = prev === imageUrls.length - 1 ? 0 : prev + 1;
-          console.log(`🎠 Carrossel manual: ${prev} -> ${nextIndex}`);
-          return nextIndex;
-        });
-      }, 7000);
-
-      return () => {
-        console.log("🛑 Parando carrossel manual");
-        clearInterval(interval);
-      };
-    }
-  }, [manualCarousel, imageUrls.length]);
 
   const nextImage = () => {
     if (imageUrls.length > 0) {
@@ -327,7 +256,9 @@ const SharedLovePage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center">
         <div className="text-white text-center z-10">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-xl">Carregando página de amor...</p>
+          <p className="text-xl">
+            {language === 'pt' ? "Carregando página de amor..." : "Loading love page..."}
+          </p>
         </div>
       </div>
     );
@@ -337,12 +268,12 @@ const SharedLovePage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center">
         <div className="text-white text-center z-10">
-          <p className="text-xl mb-4">{error || "Página não encontrada"}</p>
+          <p className="text-xl mb-4">{error || (language === 'pt' ? "Página não encontrada" : "Page not found")}</p>
           <Link
             to="/"
             className="bg-white text-pink-500 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
           >
-            Criar minha página
+            {language === 'pt' ? "Criar minha página" : "Create my page"}
           </Link>
         </div>
       </div>
@@ -392,7 +323,7 @@ const SharedLovePage: React.FC = () => {
           className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-200 flex items-center gap-2"
         >
           <span>←</span>
-          Criar sua página
+          {language === 'pt' ? "Criar sua página" : "Create your page"}
         </Link>
       </div>
 
@@ -410,13 +341,15 @@ const SharedLovePage: React.FC = () => {
         <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">
           {pageData.coupleName}
         </h1>
-        <p className="text-xl md:text-2xl opacity-90 mb-2">Estão juntos há</p>
+        <p className="text-xl md:text-2xl opacity-90 mb-2">
+          {language === 'pt' ? "Estão juntos há" : "Together for"}
+        </p>
         <p className="text-2xl md:text-4xl font-bold bg-white/20 backdrop-blur-sm inline-block px-6 py-3 rounded-2xl">
           {relationshipTime}
         </p>
       </div>
 
-      {/* Imagens logo abaixo do nome do casal */}
+      {/* Imagens */}
       {imageUrls.length > 0 ? (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-8">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
@@ -424,9 +357,9 @@ const SharedLovePage: React.FC = () => {
               className="text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3"
               style={{ color: pageData.textColor || "#ffffff" }}
             >
-              <span>Nossos Momentos</span>
+              <span>{language === 'pt' ? "Nossos Momentos" : "Our Moments"}</span>
               <span className="text-lg">
-                ({imageUrls.length} foto{imageUrls.length !== 1 ? "s" : ""})
+                ({imageUrls.length} {imageUrls.length === 1 ? t.photo : t.photos})
               </span>
             </h2>
 
@@ -436,17 +369,14 @@ const SharedLovePage: React.FC = () => {
 
                 <img
                   src={imageUrls[currentImageIndex]}
-                  alt={`Momento ${currentImageIndex + 1}`}
+                  alt={`${language === 'pt' ? "Momento" : "Moment"} ${currentImageIndex + 1}`}
                   className="w-full h-64 md:h-96 object-cover transition-all duration-1000 ease-in-out transform hover:scale-105"
                   style={{
                     animation: "fadeInScale 1s ease-in-out",
                   }}
                   onLoad={() => {
                     console.log(
-                      `✅ Imagem ${
-                        currentImageIndex + 1
-                      } carregada com sucesso:`,
-                      imageUrls[currentImageIndex]
+                      `✅ Imagem ${currentImageIndex + 1} carregada com sucesso`
                     );
                   }}
                   onError={(e) => {
@@ -498,9 +428,6 @@ const SharedLovePage: React.FC = () => {
                 >
                   {currentImageIndex + 1} / {imageUrls.length}
                 </p>
-                {imageUrls.length > 1 && (
-                  <div className="flex items-center gap-2 text-white/70 text-sm"></div>
-                )}
               </div>
             </div>
           </div>
@@ -512,19 +439,13 @@ const SharedLovePage: React.FC = () => {
               className="text-lg"
               style={{ color: pageData.textColor || "#ffffff" }}
             >
-              {" "}
-              Nenhuma imagem disponível
-            </p>
-            <p
-              className="text-sm mt-2"
-              style={{ color: pageData.textColor || "#ffffff", opacity: 0.7 }}
-            >
-              As imagens serão carregadas em breve...
+              {language === 'pt' ? "Nenhuma imagem disponível" : "No images available"}
             </p>
           </div>
         </div>
       )}
 
+      {/* Mensagem */}
       <div className="fade-in">
         <div className="bg-white/20 backdrop-blur-sm mx-4 md:mx-auto md:max-w-2xl rounded-2xl p-6 md:p-8 mb-8 transform hover:scale-[1.02] transition duration-300">
           <p
@@ -536,6 +457,7 @@ const SharedLovePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Música */}
       {youtubeEmbedUrl && (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
@@ -543,14 +465,14 @@ const SharedLovePage: React.FC = () => {
               className="text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3"
               style={{ color: pageData.textColor || "#ffffff" }}
             >
-              <span>Nossa Música</span>
+              <span>{language === 'pt' ? "Nossa Música" : "Our Song"}</span>
             </h2>
 
             <div className="bg-black/30 rounded-2xl p-4 md:p-6">
               <div className="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-2xl bg-black">
                 <iframe
                   src={youtubeEmbedUrl}
-                  title="Nossa música especial"
+                  title={language === 'pt' ? "Nossa música especial" : "Our special song"}
                   className="w-full h-64 md:h-80 rounded-lg"
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -561,6 +483,7 @@ const SharedLovePage: React.FC = () => {
         </div>
       )}
 
+      {/* Rodapé */}
       <div
         className="text-center py-8 fade-in"
         style={{ color: pageData.textColor || "#ffffff", opacity: 0.8 }}
@@ -572,12 +495,10 @@ const SharedLovePage: React.FC = () => {
             className="w-4 h-4"
           />
           <p className="text-sm">
-            Página criada com amor •{" "}
+            {language === 'pt' ? "Página criada com amor •" : "Page created with love •"}{" "}
             {pageData.createdAt?.toDate
-              ? new Date(pageData.createdAt.toDate()).toLocaleDateString(
-                  "pt-BR"
-                )
-              : "Data não disponível"}
+              ? new Date(pageData.createdAt.toDate()).toLocaleDateString(language === 'pt' ? "pt-BR" : "en-US")
+              : language === 'pt' ? "Data não disponível" : "Date not available"}
           </p>
         </div>
       </div>

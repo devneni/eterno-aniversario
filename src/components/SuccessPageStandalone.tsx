@@ -8,6 +8,8 @@ import {
   convertFilesToDataUrls,
   saveImagesToStorage,
 } from "./imageStorage";
+import { useLanguage } from './useLanguage';
+import { translations } from './translations';
 
 interface LovePageData {
   id?: string;
@@ -48,6 +50,9 @@ interface PageDataFromFirestore {
 }
 
 const SuccessPageStandalone: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const [searchParams] = useSearchParams();
   const [pageUrl, setPageUrl] = useState("");
   const [coupleName, setCoupleName] = useState("");
@@ -132,15 +137,15 @@ const SuccessPageStandalone: React.FC = () => {
         };
         setMaxImages(planLimits[(data as LovePageData).selectedPlan] || 5);
       } else {
-        alert("Página não encontrada");
+        alert(language === 'pt' ? "Página não encontrada" : "Page not found");
       }
     } catch (error) {
       console.error("Erro ao carregar dados da página:", error);
-      alert("Erro ao carregar dados da página");
+      alert(language === 'pt' ? "Erro ao carregar dados da página" : "Error loading page data");
     } finally {
       setLoading(false);
     }
-  }, [pageUrl]);
+  }, [pageUrl, language]);
 
   useEffect(() => {
     const url = searchParams.get("pageUrl");
@@ -179,7 +184,9 @@ const SuccessPageStandalone: React.FC = () => {
 
       if (totalImages > maxImages) {
         alert(
-          `Você pode adicionar no máximo ${maxImages} imagens. Plano atual permite ${maxImages} fotos.`
+          language === 'pt' 
+            ? `Você pode adicionar no máximo ${maxImages} imagens. Plano atual permite ${maxImages} fotos.`
+            : `You can add up to ${maxImages} images. Current plan allows ${maxImages} photos.`
         );
         return;
       }
@@ -221,11 +228,11 @@ const SuccessPageStandalone: React.FC = () => {
         updatedAt: new Date(),
       });
 
-      alert("Alterações salvas com sucesso!");
+      alert(language === 'pt' ? "Alterações salvas com sucesso!" : "Changes saved successfully!");
       setEditing(false);
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
-      alert("Erro ao salvar alterações");
+      alert(language === 'pt' ? "Erro ao salvar alterações" : "Error saving changes");
     }
   };
 
@@ -241,7 +248,7 @@ const SuccessPageStandalone: React.FC = () => {
   const handleShareLink = async () => {
     try {
       await navigator.clipboard.writeText(pageUrl);
-      alert("Link copiado para a área de transferência!");
+      alert(language === 'pt' ? "Link copiado para a área de transferência!" : "Link copied to clipboard!");
     } catch (error) {
       console.error("Erro ao copiar link:", error);
     }
@@ -256,8 +263,10 @@ const SuccessPageStandalone: React.FC = () => {
         
         <div className="text-white text-center z-10 backdrop-blur-sm bg-white/10 rounded-3xl p-12 border border-white/20">
           <div className="animate-spin rounded-full h-20 w-20 border-4 border-white/30 border-t-white mx-auto mb-6"></div>
-          <p className="text-2xl font-bold mb-2">Carregando...</p>
-          <p className="text-white/80">Preparando sua página de sucesso</p>
+          <p className="text-2xl font-bold mb-2">{t.Loading}</p>
+          <p className="text-white/80">
+            {language === 'pt' ? "Preparando sua página de sucesso" : "Preparing your success page"}
+          </p>
         </div>
       </div>
     );
@@ -284,10 +293,10 @@ const SuccessPageStandalone: React.FC = () => {
               </div>
               
               <h1 className="text-4xl md:text-5xl font-black text-white mb-3 drop-shadow-2xl">
-                Página Criada com Sucesso!
+                {language === 'pt' ? "Página Criada com Sucesso!" : "Page Created Successfully!"}
               </h1>
               <p className="text-xl text-white/90">
-                Página de{" "}
+                {language === 'pt' ? "Página de" : "Page of"}{" "}
                 <span className="font-bold  bg-gradient-to-r from-pink-200 to-red-200 bg-clip-text text-transparent">
                   {coupleName}
                 </span>
@@ -300,7 +309,7 @@ const SuccessPageStandalone: React.FC = () => {
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 text-center border border-white/10">
                   <h3 className="text-2xl font-bold text-white mb-6 flex items-center justify-center gap-3">
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                      QR Code para Compartilhar
+                      {language === 'pt' ? "QR Code para Compartilhar" : "QR Code to Share"}
                     </span>
                   </h3>
                   
@@ -317,8 +326,7 @@ const SuccessPageStandalone: React.FC = () => {
                     onClick={handleShareQRCode}
                     className="group bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
                   >
-                   
-                    Baixar QR Code
+                    {language === 'pt' ? "Baixar QR Code" : "Download QR Code"}
                   </button>
                 </div>
               )}
@@ -328,10 +336,10 @@ const SuccessPageStandalone: React.FC = () => {
                 {/* Page Link */}
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                     
-                    </div>
-                    <h4 className="text-white font-bold text-lg">Seu link personalizado</h4>
+                    
+                    <h4 className="text-white font-bold text-lg">
+                      {language === 'pt' ? "Seu link personalizado" : "Your personalized link"}
+                    </h4>
                   </div>
                   
                   <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -342,8 +350,7 @@ const SuccessPageStandalone: React.FC = () => {
                       onClick={handleShareLink}
                       className="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
                     >
-                     
-                      Copiar Link
+                      {language === 'pt' ? "Copiar Link" : "Copy Link"}
                     </button>
                   </div>
                 </div>
@@ -353,9 +360,11 @@ const SuccessPageStandalone: React.FC = () => {
                   <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        
+                        ✏️
                       </div>
-                      <h4 className="text-white font-bold text-lg">Link de edição</h4>
+                      <h4 className="text-white font-bold text-lg">
+                        {language === 'pt' ? "Link de edição" : "Edit link"}
+                      </h4>
                     </div>
                     
                     <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -365,12 +374,11 @@ const SuccessPageStandalone: React.FC = () => {
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(uniqueSuccessUrl);
-                          alert("Link de edição copiado!");
+                          alert(language === 'pt' ? "Link de edição copiado!" : "Edit link copied!");
                         }}
                         className="group bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
                       >
-                        
-                        Copiar Link
+                        {language === 'pt' ? "Copiar Link" : "Copy Link"}
                       </button>
                     </div>
                   </div>
@@ -383,8 +391,7 @@ const SuccessPageStandalone: React.FC = () => {
                   onClick={() => window.open(pageUrl, "_blank")}
                   className="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                 >
-              
-                  Ver Página
+                  {language === 'pt' ? "Ver Página" : "View Page"}
                 </button>
                 <button
                   onClick={() => setEditing(!editing)}
@@ -394,8 +401,10 @@ const SuccessPageStandalone: React.FC = () => {
                       : "bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
                   }`}
                 >
-                  <span>{editing ? "" : ""}</span>
-                  {editing ? "Cancelar Edição" : "Editar Página"}
+                  {editing 
+                    ? (language === 'pt' ? "Cancelar Edição" : "Cancel Edit")
+                    : (language === 'pt' ? "Editar Página" : "Edit Page")
+                  }
                 </button>
               </div>
             </div>
@@ -407,10 +416,12 @@ const SuccessPageStandalone: React.FC = () => {
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-black text-white mb-2 flex items-center justify-center gap-3">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                    Editar Página
+                    {language === 'pt' ? "Editar Página" : "Edit Page"}
                   </span>
                 </h3>
-                <p className="text-white/70">Faça alterações na sua página de amor</p>
+                <p className="text-white/70">
+                  {language === 'pt' ? "Faça alterações na sua página de amor" : "Make changes to your love page"}
+                </p>
               </div>
 
               <div className="space-y-8">
@@ -418,7 +429,7 @@ const SuccessPageStandalone: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-white font-semibold mb-3 block text-lg">
-                       Nome do Casal
+                      {t.couple_names}
                     </label>
                     <input
                       type="text"
@@ -430,13 +441,13 @@ const SuccessPageStandalone: React.FC = () => {
                         }))
                       }
                       className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300"
-                      placeholder="Digite o nome do casal"
+                      placeholder={language === 'pt' ? "Digite o nome do casal" : "Enter couple names"}
                     />
                   </div>
 
                   <div>
                     <label className="text-white font-semibold mb-3 block text-lg">
-                      Mensagem do Casal
+                      {t.message}
                     </label>
                     <textarea
                       value={formData.coupleMessage}
@@ -448,7 +459,7 @@ const SuccessPageStandalone: React.FC = () => {
                       }
                       className="w-full p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-300 resize-none"
                       rows={3}
-                      placeholder="Escreva uma mensagem especial..."
+                      placeholder={language === 'pt' ? "Escreva uma mensagem especial..." : "Write a special message..."}
                     />
                   </div>
                 </div>
@@ -456,7 +467,7 @@ const SuccessPageStandalone: React.FC = () => {
                 {/* YouTube Link */}
                 <div>
                   <label className="text-white font-semibold mb-3 block text-lg">
-                     Link do YouTube
+                    {t.youtube}
                   </label>
                   <input
                     type="text"
@@ -476,7 +487,7 @@ const SuccessPageStandalone: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-white font-semibold mb-3 block text-lg">
-                       Data de Início
+                      {t.start_date}
                     </label>
                     <input
                       type="date"
@@ -492,7 +503,7 @@ const SuccessPageStandalone: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-white font-semibold mb-3 block text-lg">
-                       Hora de Início
+                      {t.hoursandminutes}
                     </label>
                     <input
                       type="time"
@@ -511,13 +522,13 @@ const SuccessPageStandalone: React.FC = () => {
                 {/* Color Customization */}
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <h4 className="text-2xl font-bold text-white mb-6 text-center">
-                     Personalizar Cores
+                    {language === 'pt' ? "Personalizar Cores" : "Customize Colors"}
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                       <label className="text-white font-semibold text-lg">
-                        Cor do Texto
+                        {language === 'pt' ? "Cor do Texto" : "Text Color"}
                       </label>
                       <div className="flex items-center space-x-4">
                         <input
@@ -548,7 +559,7 @@ const SuccessPageStandalone: React.FC = () => {
 
                     <div className="space-y-4">
                       <label className="text-white font-semibold text-lg">
-                        Cor de Fundo
+                        {language === 'pt' ? "Cor de Fundo" : "Background Color"}
                       </label>
                       <div className="flex items-center space-x-4">
                         <input
@@ -581,7 +592,7 @@ const SuccessPageStandalone: React.FC = () => {
                   {/* Color Preview */}
                   <div className="mt-6 p-6 rounded-2xl border-2 border-white/20 shadow-lg" style={{ backgroundColor: formData.backgroundColor }}>
                     <p className="text-center font-bold text-xl" style={{ color: formData.textColor }}>
-                      {formData.coupleName || "Preview do Nome do Casal"}
+                      {formData.coupleName || (language === 'pt' ? "Preview do Nome do Casal" : "Couple Name Preview")}
                     </p>
                   </div>
                 </div>
@@ -590,7 +601,7 @@ const SuccessPageStandalone: React.FC = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
                     <h4 className="text-2xl font-bold text-white">
-                       Gerenciar Imagens
+                      {language === 'pt' ? "Gerenciar Imagens" : "Manage Images"}
                     </h4>
                     <span className="bg-white/20 px-4 py-2 rounded-full text-white font-semibold">
                       {currentImages.length}/{maxImages}
@@ -633,33 +644,33 @@ const SuccessPageStandalone: React.FC = () => {
                         htmlFor="image-upload"
                         className="cursor-pointer block"
                       >
-                        
                         <p className="text-white font-semibold mb-2">
-                          Clique para adicionar imagens
+                          {language === 'pt' ? "Clique para adicionar imagens" : "Click to add images"}
                         </p>
                         <p className="text-white/70 text-sm">
-                          Você pode adicionar até {maxImages - currentImages.length} imagens
+                          {language === 'pt' 
+                            ? `Você pode adicionar até ${maxImages - currentImages.length} imagens`
+                            : `You can add up to ${maxImages - currentImages.length} images`
+                          }
                         </p>
                       </label>
                     </div>
                   )}
                 </div>
 
-              
+                {/* Save/Cancel Buttons */}
                 <div className="flex flex-col md:flex-row gap-4">
                   <button
                     onClick={handleSave}
                     className="flex-1 group bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                   >
-                    <span></span>
-                    Salvar Alterações
+                    {language === 'pt' ? "Salvar Alterações" : "Save Changes"}
                   </button>
                   <button
                     onClick={() => setEditing(false)}
                     className="flex-1 group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                   >
-                    <span></span>
-                    Cancelar
+                    {language === 'pt' ? "Cancelar" : "Cancel"}
                   </button>
                 </div>
               </div>
@@ -668,8 +679,18 @@ const SuccessPageStandalone: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center text-white/70 text-sm backdrop-blur-sm bg-white/5 rounded-2xl p-6 border border-white/10">
-            <p className="font-semibold mb-2"> Este link é permanente e pode ser compartilhado!</p>
-            <p>Use o QR Code para compartilhar facilmente com amigos e familiares</p>
+            <p className="font-semibold mb-2">
+              {language === 'pt' 
+                ? "Este link é permanente e pode ser compartilhado!"
+                : "This link is permanent and can be shared!"
+              }
+            </p>
+            <p>
+              {language === 'pt' 
+                ? "Use o QR Code para compartilhar facilmente com amigos e familiares"
+                : "Use the QR Code to easily share with friends and family"
+              }
+            </p>
           </div>
         </div>
       </div>

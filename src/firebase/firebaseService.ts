@@ -1,11 +1,7 @@
 import { collection, addDoc, setDoc, doc, getDoc } from "firebase/firestore";
-import { db } from "./firebaseConfig";
+import { db, storage } from "./firebaseConfig";
 import { calculateRelationshipTime } from "../components/calculateRelationshipTime";
-import {
-  getImagesFromStorage,
-  convertFilesToDataUrls,
-  saveImagesToStorage,
-} from "../components/imageStorage";
+import { ref, getDownloadURL } from "firebase/storage";
 
 function generateCustomSlug(coupleName: string): string {
   const cleanName = coupleName
@@ -19,6 +15,47 @@ function generateCustomSlug(coupleName: string): string {
   const randomString = Math.random().toString(36).substring(2, 7);
   return `${cleanName}-${randomString}`;
 }
+
+// Função para fazer upload das imagens para o Firebase Storage
+const uploadImagesToFirebase = async (files: File[], pageId: string): Promise<string[]> => {
+  console.log("🚀 Iniciando upload de", files.length, "imagens para Firebase Storage...");
+  
+  if (files.length === 0) {
+    console.log("⚠️ Nenhum arquivo para upload");
+    return [];
+  }
+
+  const uploadPromises = files.map(async (file, index) => {
+    try {
+      console.log(`📤 Upload ${index + 1}/${files.length}:`, file.name);
+
+      // Criar nome único para o arquivo
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const uniqueName = `${pageId}_${index}_${Date.now()}.${fileExtension}`;
+      const imageRef = ref(storage, `love_pages/${pageId}/${uniqueName}`);
+
+      console.log("📁 Referência do Storage:", imageRef.fullPath);
+
+      // Fazer upload do arquivo
+  
+
+      // Obter URL de download
+      const url = await getDownloadURL(imageRef);
+      console.log(`🔗 URL ${index + 1}:`, url);
+
+      return url;
+    } catch (error) {
+      console.error(`❌ Erro no upload ${index + 1}:`, error);
+      return null;
+    }
+  });
+
+  const results = await Promise.all(uploadPromises);
+  const validUrls = results.filter((url) => url !== null) as string[];
+
+  console.log("🎉 Uploads concluídos. URLs válidas:", validUrls.length);
+  return validUrls;
+};
 
 export const createLovePage = async (
   coupleName: string,
@@ -34,36 +71,12 @@ export const createLovePage = async (
 ): Promise<{ pageId: string; customSlug: string }> => {
   console.log("🔥 createLovePage INICIADO");
   console.log("📸 Arquivos recebidos:", files.length);
-  console.log(
-    "📸 Detalhes dos arquivos:",
-    files.map((f) => ({ name: f.name, size: f.size, type: f.type }))
-  );
 
-  // Salvar nomes dos arquivos em cache
-  const fileNames = files.map((file, index) => {
-    const uniqueName = `${Date.now()}_${index}_${file.name}`;
-    return uniqueName;
-  });
-
-  console.log("📸 Nomes dos arquivos para cache:", fileNames);
-
-  // Salvar arquivos em cache (localStorage)
-  try {
-    const dataUrls = await convertFilesToDataUrls(files);
-    saveImagesToStorage(dataUrls);
-    console.log("✅ Imagens salvas em cache");
-  } catch (error) {
-    console.error("❌ Erro ao salvar imagens em cache:", error);
-  }
-
-  // Salvar lista de nomes dos arquivos
-  localStorage.setItem("imageFileNames", JSON.stringify(fileNames));
-  console.log("📝 Lista de nomes salva:", fileNames);
-
+  // Primeiro criar o documento para obter o ID
   const customSlug = generateCustomSlug(coupleName);
-  console.log(" Custom Slug gerado:", customSlug);
+  console.log("🔗 Custom Slug gerado:", customSlug);
 
-  const pageData = {
+  const initialPageData = {
     coupleName,
     coupleMessage,
     youtubeLink,
@@ -72,21 +85,43 @@ export const createLovePage = async (
     relationshipTime: calculateRelationshipTime(startDate, startTime),
     email,
     selectedPlan: selectedPlanTitle,
-    imageFileNames: fileNames, // Salvar nomes dos arquivos em vez de URLs
     customSlug: customSlug,
     textColor,
     backgroundColor,
     createdAt: new Date(),
+    imagesUrl: [], // Inicialmente vazio
+    imageFileNames: [], // Inicialmente vazio
   };
 
-  console.log("💾 Dados da página a serem salvos:", pageData);
-  console.log("📸 Nomes dos arquivos que serão salvos:", fileNames);
-
-  const docRef = await addDoc(collection(db, "paginas"), pageData);
-
+  // Criar documento no Firestore
+  const docRef = await addDoc(collection(db, "paginas"), initialPageData);
   const pageId = docRef.id;
-  console.log("Página criada com ID:", pageId);
+  console.log("📄 Página criada com ID:", pageId);
 
+  // Fazer upload das imagens
+  let imageUrls: string[] = [];
+  if (files.length > 0) {
+    try {
+      console.log("🚀 Iniciando upload das imagens...");
+      imageUrls = await uploadImagesToFirebase(files, pageId);
+      console.log("✅ Uploads concluídos:", imageUrls.length);
+    } catch (error) {
+      console.error("❌ Erro no upload das imagens:", error);
+      imageUrls = [];
+    }
+  }
+
+  // Atualizar o documento com as URLs das imagens
+  const updatedPageData = {
+    ...initialPageData,
+    imagesUrl: imageUrls,
+    imageFileNames: files.map((file, index) => `image_${index}_${Date.now()}`)
+  };
+
+  await setDoc(doc(db, "paginas", pageId), updatedPageData);
+  console.log("✅ Página atualizada com URLs das imagens");
+
+  // Salvar mapeamento do slug
   const slugMapping = {
     pageId: pageId,
     coupleName: coupleName,
@@ -116,7 +151,8 @@ export const getPageBySlug = async (slug: string) => {
       if (pageDoc.exists()) {
         const pageData = { id: pageDoc.id, ...pageDoc.data() };
         console.log("✅ Página encontrada:", pageId);
-        console.log("📸 URLs de imagem na página:", pageData.imagesUrl);
+        console.log("📸 URLs de imagem:", pageData.imagesUrl);
+        console.log("📸 Quantidade de URLs:", pageData.imagesUrl?.length || 0);
         return pageData;
       } else {
         console.log("❌ Página não encontrada para ID:", pageId);

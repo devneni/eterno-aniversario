@@ -1,8 +1,16 @@
-export const calculateRelationshipTime = (startDate: string, startTime?: string): string => {
+import { translations } from './translations'; 
+
+export const calculateRelationshipTime = (
+  startDate: string, 
+  startTime?: string, 
+  language: 'pt' | 'en' = 'pt'
+): string => {
   if (!startDate) return "";
 
+  const t = translations[language];
   const startDateTime = new Date(startDate);
   const now = new Date();
+  
   if (startTime) {
     const [h, m] = startTime.split(":").map(Number);
     startDateTime.setHours(h, m, 0, 0);
@@ -46,14 +54,33 @@ export const calculateRelationshipTime = (startDate: string, startTime?: string)
   }
 
   const parts = [];
-  if (years > 0) parts.push(`${years} ano${years > 1 ? "s" : ""}`);
-  if (months > 0) parts.push(`${months} ${months > 1 ? 'meses' : 'mês'}`);
-  if (days > 0 || parts.length === 0) parts.push(`${days} dia${days > 1 ? "s" : ""}`);
+  
+
+  if (years > 0) {
+    parts.push(`${years} ${years === 1 ? t.year : t.years}`);
+  }
+  
+
+  if (months > 0) {
+    parts.push(`${months} ${months === 1 ? t.month : t.months}`);
+  }
+  
+
+  if (days > 0 || parts.length === 0) {
+    parts.push(`${days} ${days === 1 ? t.day : t.days}`);
+  }
+
 
   if (startTime) {
-    if (hours > 0) parts.push(`${hours} hora${hours > 1 ? "s" : ""}`);
-    if (minutes > 0) parts.push(`${minutes} minuto${minutes > 1 ? "s" : ""}`);
-    if (seconds > 0 || parts.length === 0) parts.push(`${seconds} segundo${seconds > 1 ? "s" : ""}`);
+    if (hours > 0) {
+      parts.push(`${hours} ${language === 'pt' ? (hours === 1 ? 'hora' : 'horas') : (hours === 1 ? 'hour' : 'hours')}`);
+    }
+    if (minutes > 0) {
+      parts.push(`${minutes} ${language === 'pt' ? (minutes === 1 ? 'minuto' : 'minutos') : (minutes === 1 ? 'minute' : 'minutes')}`);
+    }
+    if (seconds > 0 || parts.length === 0) {
+      parts.push(`${seconds} ${language === 'pt' ? (seconds === 1 ? 'segundo' : 'segundos') : (seconds === 1 ? 'second' : 'seconds')}`);
+    }
   }
 
   return parts.join(", ");

@@ -65,7 +65,15 @@ export const translations: Translations = {
     faq9question: "Quais formas de pagamento são aceitas?",
     faq9answer: "Aceitamos pagamentos via Pix e cartões de crédito das principais bandeiras.",
     faq10question: "Como posso entrar em contato com o suporte?",
-    faq10answer: "Você pode entrar em contato com nosso suporte ao cliente através do e-mail eternoaniversario@gmail.com ou pelo WhatsApp (47) 98861-7240"
+    faq10answer: "Você pode entrar em contato com nosso suporte ao cliente através do e-mail eternoaniversario@gmail.com ou pelo WhatsApp (47) 98861-7240",
+// Footer
+    footer: "Eterno Aniversário ©  Todos os direitos reservados - desenvolvido por neni",
+    hour: "hora",
+    hours: "horas", 
+    minute: "minuto",
+    minutes: "minutos",
+    second: "segundo",
+    seconds: "segundos"
   },
   en: {
     header: "Eternal Anniversary",
@@ -130,7 +138,14 @@ export const translations: Translations = {
     faq9question: "What payment methods are accepted?",
     faq9answer: "We accept payments via Pix and credit cards from major brands.",
     faq10question: "How can I contact support?",
-    faq10answer: "You can contact our customer support through email eternoaniversario@gmail.com or via WhatsApp (47) 98861-7240"
+    faq10answer: "You can contact our customer support through email eternoaniversario@gmail.com or via WhatsApp (47) 98861-7240",
+    footer: "Eternal Anniversary ©  All rights reserved - developed by neni",
+    hour: "hour",
+    hours: "hours",
+    minute: "minute", 
+    minutes: "minutes",
+    second: "second",
+    seconds: "seconds"
   }
 };
 

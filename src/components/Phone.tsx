@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { getImagesFromStorage } from "./imageStorage";
+import { useLanguage } from './useLanguage'; 
+import { translations } from './translations'; 
 
 interface PropsPhone {
   coupleName: string;
@@ -13,7 +15,6 @@ interface PropsPhone {
   imageUrls?: string[];
 }
 
-
 interface FallingHeart {
   id: number;
   left: number;
@@ -21,7 +22,6 @@ interface FallingHeart {
   size: number;
   delay: number;
 }
-
 
 const getBackgroundStyle = (backgroundColor: string): string => {
   const gradients = {
@@ -37,14 +37,11 @@ const getBackgroundStyle = (backgroundColor: string): string => {
     'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
   };
 
-
   if (gradients[backgroundColor as keyof typeof gradients]) {
     return gradients[backgroundColor as keyof typeof gradients];
   }
 
-
   if (backgroundColor.startsWith('#')) {
-
     const lightenColor = (color: string, percent: number) => {
       const num = parseInt(color.replace('#', ''), 16);
       const amt = Math.round(2.55 * percent);
@@ -65,7 +62,6 @@ const getBackgroundStyle = (backgroundColor: string): string => {
 
     return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
   }
-
 
   return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
 };
@@ -98,6 +94,9 @@ function Phone({
   backgroundColor = "#ec4899",
   imageUrls = [],
 }: PropsPhone) {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [savedImages, setSavedImages] = useState<string[]>([]);
   const [fallingHearts, setFallingHearts] = useState<FallingHeart[]>([]);
@@ -113,7 +112,6 @@ function Phone({
     const totalImages = files.length > 0 ? files.length : savedImages.length;
     if (totalImages > 0) setCurrentIndex(0);
   }, [files, savedImages]);
-
 
   useEffect(() => {
     if (files.length > 0 || savedImages.length > 0) {
@@ -195,7 +193,7 @@ function Phone({
 
       <p className="text-white text-center mt-2 font-serif text-[12px]"
         style={{ color: textColor }}>
-        Estão juntos há
+        {language === 'pt' ? 'Estão juntos há' : 'Together for'}
       </p>
 
       <p className="text-[12px] text-center mb-2 font-bold bg-white/20 backdrop-blur-sm px-1 py-3 rounded-2xl "
@@ -206,8 +204,8 @@ function Phone({
       <div className="relative w-[200px] h-[200px] mx-auto fade-in md:mx-auto mb-12md:max-w-4xl mb- overflow-hidden bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <p className="font-bold text-center text-[12px] mb-4"
           style={{ color: textColor }}>
-          Nossos momentos <span className="text-[8px]">
-          ({totalImagesCount} foto{totalImagesCount !== 1 ? "s" : ""})</span>
+          {language === 'pt' ? 'Nossos momentos' : 'Our moments'} <span className="text-[8px]">
+          ({totalImagesCount} {totalImagesCount === 1 ? t.photos : t.photos})</span>
         </p>
 
         {totalImages > 0 ? (
@@ -289,7 +287,7 @@ function Phone({
         ) : (
           <label
             htmlFor="file-upload-input"
-            className="w-full h-full rounded-[30px]   cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969] relative"
+            className="w-full h-full rounded-[30px] cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969] relative"
           >
             
           </label>
@@ -305,7 +303,7 @@ function Phone({
         />
       </div>
 
-      <p className="mt-3  bg-white/20 backdrop-blur-s text-center rounded-2xl p-6 md:p-8 mb-3 transform hover:scale-[1.02] transition duration-300 "
+      <p className="mt-3 bg-white/20 backdrop-blur-s text-center rounded-2xl p-6 md:p-8 mb-3 transform hover:scale-[1.02] transition duration-300 "
         style={{ color: textColor }}>
         "{CoupleMessage}"
       </p>
@@ -313,7 +311,9 @@ function Phone({
       {youtubeLink && (
         <div className="fade-in mx-4 md:mx-auto md:max-w-4xl mb-12 bg-white/20 backdrop-blur-sm rounded-2xl p-6">
           <p className="text-center font-bold mb-4 "
-          style={{color:textColor}}>Nossa música</p>
+          style={{color:textColor}}>
+            {language === 'pt' ? 'Nossa música' : 'Our song'}
+          </p>
           <iframe
             width="100%"
             height="130"
@@ -324,22 +324,21 @@ function Phone({
             allowFullScreen
             className="rounded-lg"
           ></iframe>
-        
         </div>
-        
       )}
-      <div className="flex items-center justify-center gap-2 mb-2">
-        <img   src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
-            alt="heart"
-            className="w-2 h-2"
-          />
-      <p className="text-center text-[8px]"
-    
-      style={{color: textColor}}>Página criada com amor •  </p>
-      </div>
       
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <img   
+          src="https://wallpapers.com/images/hd/minecraft-pixel-heart-icon-hojbu1gs09swfmph.png"
+          alt="heart"
+          className="w-2 h-2"
+        />
+        <p className="text-center text-[8px]"
+          style={{color: textColor}}>
+          {language === 'pt' ? 'Página criada com amor •' : 'Page created with love •'}
+        </p>
+      </div>
     </div>
-  
   );
 }
 

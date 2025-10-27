@@ -6,6 +6,8 @@ import { calculateRelationshipTime } from "./calculateRelationshipTime";
 import PaymentModal from "../payments/PaymentModal";
 import SuccessPage from "./SucessPage";
 import { convertFilesToDataUrls, saveImagesToStorage } from "./imageStorage";
+import { useLanguage } from './useLanguage'; 
+import { translations } from './translations'; 
 
 type PaymentMethod = "pix" | "credit_card";
 
@@ -112,6 +114,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   backgroundColor,
   setBackgroundColor,
 }) => {
+  const { language } = useLanguage();
+  const t = translations[language];
+
   const initialPlanId: Plan["id"] =
     plansData.find((p) => p.preferred)?.id || plansData[0].id;
 
@@ -181,10 +186,10 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     localStorage.setItem("coupleName", name);
   };
 
-  const updateRelationshipTime = useCallback(() => {
-    const time = calculateRelationshipTime(startDate, startTime || undefined);
-    setRelationshipTime(time);
-  }, [startDate, startTime, setRelationshipTime]);
+const updateRelationshipTime = useCallback(() => {
+  const time = calculateRelationshipTime(startDate, startTime || undefined, language);
+  setRelationshipTime(time);
+}, [startDate, startTime, setRelationshipTime, language]);
 
   useEffect(() => {
     updateRelationshipTime();
@@ -254,7 +259,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
   const handleEditInfo = () => {
     setShowSuccessPage(false);
-    alert("Funcionalidade de edição em desenvolvimento!");
+    alert(language === 'pt' ? "Funcionalidade de edição em desenvolvimento!" : "Edit functionality in development!");
   };
 
   const handleConfirmPaymentAndCreation = (
@@ -270,7 +275,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       console.log("✅ Modo PIX detectado - iniciando criação da página...");
       setIsLoading(true);
       setPostCreationMessage({
-        text: "Pagamento confirmado! Criando sua página...",
+        text: language === 'pt' ? "Pagamento confirmado! Criando sua página..." : "Payment confirmed! Creating your page...",
         type: "success",
       });
 
@@ -360,7 +365,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       setShowSuccessPage(false);
 
       setPostCreationMessage({
-        text: "✅ Página criada com sucesso!",
+        text: language === 'pt' ? "✅ Página criada com sucesso!" : "✅ Page created successfully!",
         type: "success",
       });
       
@@ -376,7 +381,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       console.error("❌ Stack trace:", error.stack);
       
       setPostCreationMessage({
-        text: `❌ Erro: ${error.message || "Erro ao criar página"}`,
+        text: `❌ ${language === 'pt' ? 'Erro:' : 'Error:'} ${error.message || (language === 'pt' ? "Erro ao criar página" : "Error creating page")}`,
         type: "error",
       });
     } finally {
@@ -392,7 +397,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     selectedPlan?.title,
     files,
     textColor,
-    backgroundColor
+    backgroundColor,
+    language
   ]);
 
   if (!selectedPlan) return null;
@@ -428,7 +434,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
         <input
           type="text"
-          placeholder="Nome do casal"
+          placeholder={t.couple_names}
           className={inputClass}
           value={coupleName}
           onChange={(e) => handleChangeName(e.target.value)}
@@ -446,12 +452,13 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
             className={`${inputClass} w-1/2`}
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
+            placeholder={t.hoursandminutes}
           />
         </div>
 
         <input
           type="email"
-          placeholder="Seu e-mail"
+          placeholder={t.email}
           className={inputClass}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -460,12 +467,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
        
         <div className="space-y-4 bg-gray-800 border-gray-700 border rounded-lg hover:border-[#ff6969] p-4">
           <h3 className="text-lg font-semibold text-white text-center">
-            Personalize as Cores
+            {language === 'pt' ? 'Personalize as Cores' : 'Customize Colors'}
           </h3>
 
           {/* Cor do Texto - Opções Pré-definidas */}
           <div className="space-y-3">
-            <label className="text-sm text-gray-300">Cor do Texto</label>
+            <label className="text-sm text-gray-300">
+              {language === 'pt' ? 'Cor do Texto' : 'Text Color'}
+            </label>
             <div className="flex flex-wrap gap-3">
               {/* Opção Branco */}
               <button
@@ -478,7 +487,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="w-6 h-6 rounded-full bg-white border border-gray-300"></div>
-                <span className="text-white text-sm">Branco</span>
+                <span className="text-white text-sm">
+                  {language === 'pt' ? 'Branco' : 'White'}
+                </span>
               </button>
 
               {/* Opção Preto */}
@@ -492,7 +503,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="w-6 h-6 rounded-full bg-black border border-gray-300"></div>
-                <span className="text-white text-sm">Preto</span>
+                <span className="text-white text-sm">
+                  {language === 'pt' ? 'Preto' : 'Black'}
+                </span>
               </button>
 
               {/* Seletor de Cor Personalizada */}
@@ -503,14 +516,18 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                   onChange={(e) => setTextColor(e.target.value)}
                   className="w-6 h-6 rounded cursor-pointer"
                 />
-                <span className="text-white text-sm">Personalizada</span>
+                <span className="text-white text-sm">
+                  {language === 'pt' ? 'Personalizada' : 'Custom'}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Cor de Fundo - Gradientes Pré-definidos */}
           <div className="space-y-3">
-            <label className="text-sm text-gray-300">Cor de Fundo</label>
+            <label className="text-sm text-gray-300">
+              {language === 'pt' ? 'Cor de Fundo' : 'Background Color'}
+            </label>
             
             {/* Gradientes Pré-definidos */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -525,7 +542,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Roxo</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Roxo' : 'Purple'}
+                </span>
               </button>
 
               {/* Azul */}
@@ -539,7 +558,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Azul</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Azul' : 'Blue'}
+                </span>
               </button>
 
               {/* Vermelho */}
@@ -553,7 +574,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Vermelho</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Vermelho' : 'Red'}
+                </span>
               </button>
 
               {/* Rosa */}
@@ -567,7 +590,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-pink-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Rosa</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Rosa' : 'Pink'}
+                </span>
               </button>
 
               {/* Amarelo */}
@@ -581,7 +606,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-yellow-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">Amarelo</span>
+                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">
+                  {language === 'pt' ? 'Amarelo' : 'Yellow'}
+                </span>
               </button>
 
               {/* Laranja */}
@@ -595,7 +622,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Laranja</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Laranja' : 'Orange'}
+                </span>
               </button>
 
               {/* Verde */}
@@ -609,7 +638,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Verde</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Verde' : 'Green'}
+                </span>
               </button>
 
               {/* Preto */}
@@ -623,7 +654,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Preto</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Preto' : 'Black'}
+                </span>
               </button>
 
               {/* Branco */}
@@ -637,7 +670,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">Branco</span>
+                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">
+                  {language === 'pt' ? 'Branco' : 'White'}
+                </span>
               </button>
 
               {/* Cinza */}
@@ -651,13 +686,17 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-300"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">Cinza</span>
+                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
+                  {language === 'pt' ? 'Cinza' : 'Gray'}
+                </span>
               </button>
             </div>
 
             {/* Seletor de Cor Personalizada */}
             <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-              <label className="text-sm text-gray-300 mb-2 block">Cor Personalizada</label>
+              <label className="text-sm text-gray-300 mb-2 block">
+                {language === 'pt' ? 'Cor Personalizada' : 'Custom Color'}
+              </label>
               <div className="flex items-center gap-4">
                 <input
                   type="color"
@@ -681,7 +720,9 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
           {/* Preview das Cores */}
           <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-            <label className="text-sm text-gray-300 mb-2 block">Preview</label>
+            <label className="text-sm text-gray-300 mb-2 block">
+              {language === 'pt' ? 'Preview' : 'Preview'}
+            </label>
             <div 
               className="h-20 rounded-lg flex items-center justify-center transition-all duration-300"
               style={{ 
@@ -692,14 +733,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                 className="text-lg font-semibold px-4 py-2 rounded"
                 style={{ color: textColor }}
               >
-                Seu texto aparecerá assim
+                {language === 'pt' ? 'Seu texto aparecerá assim' : 'Your text will appear like this'}
               </span>
             </div>
           </div>
         </div>
 
         <textarea
-          placeholder="Declare seu amor com uma mensagem especial."
+          placeholder={t.message}
           rows={3}
           className={inputClass} 
           value={CoupleMessage}
@@ -711,7 +752,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
             <div className="flex items-center justify-between">
               <input
                 type="text"
-                placeholder="Link do Youtube (opcional)"
+                placeholder={t.youtube}
                 className={inputClass}
                 value={youtubeLink}
                 onChange={(e) => setYoutubeLink(e.target.value)}
@@ -721,7 +762,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
                   type="button"
                   onClick={clearMusicSelection}
                   className="ml-2 text-sm text-gray-400 hover:text-white transition duration-200"
-                  title="Limpar seleção"
+                  title={language === 'pt' ? 'Limpar seleção' : 'Clear selection'}
                 >
                   ×
                 </button>
@@ -730,14 +771,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-400">Dicas de músicas</p>
+                <p className="text-sm text-gray-400">{t.music_tips}</p>
                 {selectedMusicTip && (
                   <button
                     type="button"
                     onClick={clearMusicSelection}
                     className="text-xs text-gray-400 hover:text-white transition duration-200"
                   >
-                    Limpar seleção
+                    {language === 'pt' ? 'Limpar seleção' : 'Clear selection'}
                   </button>
                 )}
               </div>
@@ -777,10 +818,10 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
           {files.length > 0
             ? (() => {
                 return files.length === 1
-                  ? "1 imagem selecionada"
-                  : `${files.length} imagens selecionadas`;
+                  ? language === 'pt' ? "1 imagem selecionada" : "1 image selected"
+                  : language === 'pt' ? `${files.length} imagens selecionadas` : `${files.length} images selected`;
               })()
-            : `Selecione até ${selectedPlan.photos} imagens`}
+            : `${t.select_image} ${selectedPlan.photos}`}
         </button>
 
         <button
@@ -811,7 +852,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
               ></path>
             </svg>
           )}
-          <span>{isLoading ? "Processando..." : "Crie Sua Página Agora!"}</span>
+          <span>{isLoading ? t.Loading : t.create_page}</span>
         </button>
       </div>
 

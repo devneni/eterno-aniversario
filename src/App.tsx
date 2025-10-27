@@ -8,8 +8,9 @@ import Footer from "./components/Footer";
 import LovePageForm from "./components/LovePageForm";
 import SharedLovePage from "./components/sharedLovePage";
 import SuccessPageStandalone from "./components/SuccessPageStandalone";
-import { LanguageProvider } from "./components/useLanguage";
+import { LanguageProvider, useLanguage } from "./components/useLanguage";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import { translations } from "./components/translations";
 
 function GlobalBackground({ children }: { children: React.ReactNode }) {
   return (
@@ -26,7 +27,10 @@ function GlobalBackground({ children }: { children: React.ReactNode }) {
   );
 }
 
-function HomePage() {
+function HomePageContent() {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const [coupleName, setCoupleName] = useState<string>(getInitialCoupleName());
   const [relationshipTime, setRelationshipTime] = useState<string>("");
   const [CoupleMessage, setCoupleMessage] = useState<string>("");
@@ -53,34 +57,40 @@ function HomePage() {
         <div className="lg:col-span-2">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-left bg-clip-text text-transparent bg-gradient-to-r from-[#ff6b6b] via-[#ff8e8e] to-[#ff6b6b] animate-gradient-x leading-tight">
-              Crie momentos<br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ff3333] to-[#ff8c8c]">
-                inesquecíveis
-              </span>
+              {language === 'pt' ? (
+                <>
+                  Crie momentos<br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ff3333] to-[#ff8c8c]">
+                    inesquecíveis
+                  </span>
+                </>
+              ) : (
+                <>
+                  Create unforgettable<br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ff3333] to-[#ff8c8c]">
+                    moments
+                  </span>
+                </>
+              )}
             </h1>
 
             <p className="text-lg md:text-xl lg:text-2xl font-light text-gray-300 leading-relaxed max-w-2xl">
-              Registre o tempo do seu relacionamento em um site personalizado.
-              Preencha o formulário e compartilhe com seu amor através de um{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ff8c8c] to-[#ff3333] font-semibold drop-shadow-lg">
-                QR Code especial
-              </span>
-              .
+              {t.subtitle}
             </p>
 
             {/* Features List */}
             <div className="flex flex-wrap gap-4 mt-8">
               <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
                 <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                <span className="text-sm text-gray-300">Design Personalizado</span>
+                <span className="text-sm text-gray-300">{t.personalized_design}</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm text-gray-300">Fotos e Vídeos</span>
+                <span className="text-sm text-gray-300">{t.pics_and_video}</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
                 <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
-                <span className="text-sm text-gray-300">Compartilhamento Fácil</span>
+                <span className="text-sm text-gray-300">{t.easy_sharing}</span>
               </div>
             </div>
           </div>
@@ -139,10 +149,12 @@ function HomePage() {
             <div className="text-center mt-24 p-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="text-white font-semibold text-lg">Preview ao vivo</p>
+                <p className="text-white font-semibold text-lg">
+                  {language === 'pt' ? 'Preview ao vivo' : 'Live Preview'}
+                </p>
               </div>
               <p className="text-gray-300 text-sm">
-                Veja acima como ficará seu site
+                {language === 'pt' ? 'Veja acima como ficará seu site' : 'See above how your site will look'}
               </p>
             </div>
           </div>
@@ -164,49 +176,62 @@ function HomePage() {
   );
 }
 
+function NotFoundPage() {
+  const { language } = useLanguage();
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center backdrop-blur-sm bg-white/5 rounded-3xl border border-white/10 p-12 mx-4 max-w-md w-full">
+        <div className="text-6xl mb-4">💔</div>
+        <h2 className="text-3xl font-bold text-white mb-4">
+          {language === 'pt' ? 'Página não encontrada' : 'Page not found'}
+        </h2>
+        <p className="text-gray-300 mb-8">
+          {language === 'pt' 
+            ? 'A página que você está procurando não existe ou foi movida.'
+            : 'The page you are looking for does not exist or has been moved.'
+          }
+        </p>
+        <a
+          href="/"
+          className="inline-block bg-gradient-to-r from-[#ff6b6b] to-[#ff3333] hover:from-[#ff3333] hover:to-[#ff6b6b] text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          {language === 'pt' ? 'Voltar para o início' : 'Back to home'}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function AppContent() {
+  return (
+    <Router>
+      <GlobalBackground>
+        {/* LanguageSwitcher fixo no canto */}
+        <div className="fixed top-4 right-4 z-50">
+          <LanguageSwitcher />
+        </div>
+        
+        <Routes>
+          <Route path="/" element={<HomePageContent />} />
+          <Route path="/page/:pageId" element={<SharedLovePage />} />
+          <Route path="/shared/:pageId" element={<SharedLovePage />} />
+          <Route path="/success" element={<SuccessPageStandalone />} />
+          <Route
+            path="/success/:coupleSlug"
+            element={<SuccessPageStandalone />}
+          />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </GlobalBackground>
+    </Router>
+  );
+}
+
 function App() {
   return (
     <LanguageProvider>
-      <Router>
-        <GlobalBackground>
-          {/* LanguageSwitcher fixo no canto */}
-          <div className="fixed top-4 right-4 z-50">
-            <LanguageSwitcher />
-          </div>
-          
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/page/:pageId" element={<SharedLovePage />} />
-            <Route path="/shared/:pageId" element={<SharedLovePage />} />
-            <Route path="/success" element={<SuccessPageStandalone />} />
-            <Route
-              path="/success/:coupleSlug"
-              element={<SuccessPageStandalone />}
-            />
-
-            <Route
-              path="*"
-              element={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center backdrop-blur-sm bg-white/5 rounded-3xl border border-white/10 p-12 mx-4 max-w-md w-full">
-                    <div className="text-6xl mb-4">💔</div>
-                    <h2 className="text-3xl font-bold text-white mb-4">Página não encontrada</h2>
-                    <p className="text-gray-300 mb-8">
-                      A página que você está procurando não existe ou foi movida.
-                    </p>
-                    <a
-                      href="/"
-                      className="inline-block bg-gradient-to-r from-[#ff6b6b] to-[#ff3333] hover:from-[#ff3333] hover:to-[#ff6b6b] text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                    >
-                      Voltar para o início
-                    </a>
-                  </div>
-                </div>
-              }
-            />
-          </Routes>
-        </GlobalBackground>
-      </Router>
+      <AppContent />
     </LanguageProvider>
   );
 }
