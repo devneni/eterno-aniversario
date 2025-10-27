@@ -12,31 +12,31 @@ const faqData: FaqItem[] = [
     id: 1,
     question: "O que é a Eterno Aniversário?",
     answer:
-      "Eterno Aniversário é uma plataforma que permite criar páginas personalizadas de aniversário para qualquer pessoa. Você pode adicionar fotos, uma mensagem especial e um contador que mostra há quanto tempo falta para a data do aniversário.",
+      "Eterno Aniversário é uma plataforma que permite criar páginas personalizadas de amor para qualquer pessoa. Você pode adicionar fotos, uma mensagem especial e um contador que mostra há quanto tempo estão juntos.",
   },
   {
     id: 2,
-    question: "Como eu crio uma página personaliza no Eterno Aniversário?",
+    question: "Como eu crio uma página personalizada no Eterno Aniversário?",
     answer:
-      "Para criar uma página personalizada, preencha o formulário com o nome da pessoa, a data de nascimento, uma mensagem de parabéns, fotos e o link de um vídeo do Youtube. Depois, clique no botão 'Criar' e finalize o pagamento.",
+      "Para criar uma página personalizada, preencha o formulário com o nome do pessoa, a data de casal, uma mensagem de amor, fotos e o link de um vídeo do Youtube. Depois, clique no botão 'Criar' e finalize o pagamento.",
   },
   {
     id: 3,
     question: "Oque está incluso na minha página personalizada",
     answer:
-      "Sua página personalizada incluirá um contador mostrando quanto tempo falta para o aniversário da pessoa, uma apresentação de slides com fotos e uma mensagem especial de parabéns. Além disso, haverá confetes caindo a cada troca de foto.",
+      "Sua página personalizada incluirá um contador mostrando quanto tempo estão juntos, uma apresentação de slides com fotos e uma mensagem especial de amor. Além disso, haverá confetes caindo a cada troca de foto.",
   },
   {
     id: 4,
     question: "Como recebo minha página personalizada após o pagamento?",
     answer:
-      "Após a conclusão do pagamento, você receberá um QR code para compartilhar com o aniversariante e um link via e-mail para acessar a página.",
+      "Após a conclusão do pagamento, você receberá um QR code para compartilhar com o seu amor e um link via e-mail para acessar a página.",
   },
   {
     id: 5,
     question: "A página personalizada tem validade?",
     answer:
-      "No preço básico e intermediário sim, 1 ano. No plano avançado, a página personalizada estará disponível para a pessoa pelo resto da vida",
+      "No preço básico e intermediário sim, 1 ano. No plano eterno, a página personalizada estará disponível para a pessoa pelo resto da vida",
   },
   {
     id: 6,

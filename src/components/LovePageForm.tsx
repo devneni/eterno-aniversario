@@ -228,15 +228,22 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         selectedPlan?.photos || 5
       );
       console.log("📸 Arquivos selecionados:", filesArray.length);
+      console.log("📸 Detalhes dos arquivos:", filesArray.map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type,
+        lastModified: f.lastModified
+      })));
+
       setFiles(filesArray);
 
       // Salvar imagens em cache imediatamente
       try {
         const dataUrls = await convertFilesToDataUrls(filesArray);
         saveImagesToStorage(dataUrls);
-        console.log(" Imagens salvas em cache");
+        console.log("✅ Imagens salvas em cache:", dataUrls.length);
       } catch (error) {
-        console.error(" Erro ao salvar imagens em cache:", error);
+        console.error("❌ Erro ao salvar imagens em cache:", error);
       }
     }
   };
@@ -254,13 +261,13 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     method: PaymentMethod,
     total: number
   ) => {
-    console.log(" handleConfirmPaymentAndCreation chamado:", { method, total });
+    console.log("💰 handleConfirmPaymentAndCreation chamado:", { method, total });
 
     setIsModalOpen(false);
     setPostCreationMessage({ text: "", type: "" });
 
     if (method === "pix") {
-      console.log("✅Modo PIX detectado - iniciando criação da página...");
+      console.log("✅ Modo PIX detectado - iniciando criação da página...");
       setIsLoading(true);
       setPostCreationMessage({
         text: "Pagamento confirmado! Criando sua página...",
@@ -268,7 +275,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       });
 
       setTimeout(() => {
-        console.log(" Chamando createOnDataBase...");
+        console.log("🚀 Chamando createOnDataBase...");
         createOnDataBase();
       }, 500);
 
@@ -285,12 +292,38 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
   const createOnDataBase = useCallback(async () => {
     console.log("📦 createOnDataBase INICIADO");
     console.log("📸 Arquivos para upload:", files.length);
-    console.log(
-      "📸 Detalhes dos arquivos:",
-      files.map((f) => ({ name: f.name, size: f.size, type: f.type }))
-    );
+    console.log("📸 Detalhes dos arquivos:", files.map((f) => ({ 
+      name: f.name, 
+      size: f.size, 
+      type: f.type 
+    })));
+
+    // Verifique se os arquivos são válidos
+    files.forEach((file, index) => {
+      console.log(`📄 Arquivo ${index + 1}:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        isValid: file.size > 0 && file.type.startsWith('image/')
+      });
+    });
 
     try {
+      console.log("🔄 Chamando createLovePage...");
+      console.log("📋 Dados sendo enviados:", {
+        coupleName,
+        CoupleMessage,
+        youtubeLink,
+        startDate,
+        startTime,
+        email,
+        planTitle: selectedPlan?.title || "",
+        filesCount: files.length,
+        textColor,
+        backgroundColor
+      });
+      
       const { pageId, customSlug } = await createLovePage(
         coupleName,
         CoupleMessage,
@@ -299,18 +332,18 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
         startTime,
         email,
         selectedPlan?.title || "",
-        files,
+        files, // ← VERIFIQUE SE ESTÁ PASSANDO OS FILES CORRETAMENTE
         textColor,
         backgroundColor
       );
 
-      console.log(" createLovePage executado com sucesso!");
-      console.log(" Page ID:", pageId);
-      console.log(" Custom Slug:", customSlug);
+      console.log("✅ createLovePage executado com sucesso!");
+      console.log("📄 Page ID:", pageId);
+      console.log("🔗 Custom Slug:", customSlug);
 
       const customPageUrl = `${window.location.origin}/shared/${customSlug}`;
 
-      console.log(" URL Personalizada:", customPageUrl);
+      console.log("🌐 URL Personalizada:", customPageUrl);
 
       setCreatedPageUrl(customPageUrl);
 
@@ -320,12 +353,14 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       }/success?pageUrl=${encodeURIComponent(
         customPageUrl
       )}&coupleName=${encodeURIComponent(coupleName)}`;
+      
+      console.log("🎉 Abrindo página de sucesso:", successPageUrl);
       window.open(successPageUrl, "_blank");
 
       setShowSuccessPage(false);
 
       setPostCreationMessage({
-        text: " Página criada com sucesso!",
+        text: "✅ Página criada com sucesso!",
         type: "success",
       });
       
@@ -337,9 +372,11 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
       localStorage.removeItem("startTime");
       localStorage.removeItem("email");
     } catch (error: any) {
-      console.error(" ERRO em createOnDataBase:", error);
+      console.error("❌ ERRO em createOnDataBase:", error);
+      console.error("❌ Stack trace:", error.stack);
+      
       setPostCreationMessage({
-        text: ` Erro: ${error.message || "Erro ao criar página"}`,
+        text: `❌ Erro: ${error.message || "Erro ao criar página"}`,
         type: "error",
       });
     } finally {
@@ -354,6 +391,8 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     email,
     selectedPlan?.title,
     files,
+    textColor,
+    backgroundColor
   ]);
 
   if (!selectedPlan) return null;

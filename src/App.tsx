@@ -8,6 +8,8 @@ import Footer from "./components/Footer";
 import LovePageForm from "./components/LovePageForm";
 import SharedLovePage from "./components/sharedLovePage";
 import SuccessPageStandalone from "./components/SuccessPageStandalone";
+import { LanguageProvider } from "./components/useLanguage";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 
 function GlobalBackground({ children }: { children: React.ReactNode }) {
   return (
@@ -46,7 +48,6 @@ function HomePage() {
     <>
       <Header />
       
-     
       <div className="grid grid-cols-1 lg:grid-cols-3 w-full max-w-7xl mx-auto px-4 lg:px-8 py-8 lg:py-16 gap-8">
        
         <div className="lg:col-span-2">
@@ -116,37 +117,36 @@ function HomePage() {
         </div>
 
        
-      <div className="lg:col-span-1 flex items-start justify-center lg:justify-end">
-  <div className="relative lg:mt-85 lg:sticky lg:top-32">
-
-    <div className="absolute -top-4 -left-4 w-8 h-8 bg-pink-500/20 rounded-full blur-sm animate-bounce"></div>
-    <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-red-500/20 rounded-full blur-sm animate-bounce delay-500"></div>
-    
-    <div className="transform lg:scale-110 xl:scale-125 origin-center transition-all duration-500 hover:scale-105">
-      <Phone
-        coupleName={coupleName}
-        relationshipTime={relationshipTime}
-        CoupleMessage={CoupleMessage}
-        files={files}
-        setFiles={setFiles}
-        youtubeLink={youtubeLink}
-        textColor={textColor}
-        backgroundColor={backgroundColor}
-      />
-    </div>
-    
-  
-    <div className="text-center mt-24 p-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
-      <div className="flex items-center justify-center  gap-2 mb-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <p className="text-white font-semibold text-lg">Preview ao vivo</p>
-      </div>
-      <p className="text-gray-300 text-sm">
-        Veja acima como ficará seu site
-      </p>
-    </div>
-  </div>
-</div>
+        <div className="lg:col-span-1 flex items-start justify-center lg:justify-end">
+          <div className="relative lg:mt-85 lg:sticky lg:top-32">
+            <div className="absolute -top-4 -left-4 w-8 h-8 bg-pink-500/20 rounded-full blur-sm animate-bounce"></div>
+            <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-red-500/20 rounded-full blur-sm animate-bounce delay-500"></div>
+            
+            <div className="transform lg:scale-110 xl:scale-125 origin-center transition-all duration-500 hover:scale-105">
+              <Phone
+                coupleName={coupleName}
+                relationshipTime={relationshipTime}
+                CoupleMessage={CoupleMessage}
+                files={files}
+                setFiles={setFiles}
+                youtubeLink={youtubeLink}
+                textColor={textColor}
+                backgroundColor={backgroundColor}
+              />
+            </div>
+            
+          
+            <div className="text-center mt-24 p-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-white font-semibold text-lg">Preview ao vivo</p>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Veja acima como ficará seu site
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
     
@@ -166,41 +166,48 @@ function HomePage() {
 
 function App() {
   return (
-    <Router>
-      <GlobalBackground>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/page/:pageId" element={<SharedLovePage />} />
-          <Route path="/shared/:pageId" element={<SharedLovePage />} />
-          <Route path="/success" element={<SuccessPageStandalone />} />
-          <Route
-            path="/success/:coupleSlug"
-            element={<SuccessPageStandalone />}
-          />
+    <LanguageProvider>
+      <Router>
+        <GlobalBackground>
+          {/* LanguageSwitcher fixo no canto */}
+          <div className="fixed top-4 right-4 z-50">
+            <LanguageSwitcher />
+          </div>
+          
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/page/:pageId" element={<SharedLovePage />} />
+            <Route path="/shared/:pageId" element={<SharedLovePage />} />
+            <Route path="/success" element={<SuccessPageStandalone />} />
+            <Route
+              path="/success/:coupleSlug"
+              element={<SuccessPageStandalone />}
+            />
 
-          <Route
-            path="*"
-            element={
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center backdrop-blur-sm bg-white/5 rounded-3xl border border-white/10 p-12 mx-4 max-w-md w-full">
-                  <div className="text-6xl mb-4">💔</div>
-                  <h2 className="text-3xl font-bold text-white mb-4">Página não encontrada</h2>
-                  <p className="text-gray-300 mb-8">
-                    A página que você está procurando não existe ou foi movida.
-                  </p>
-                  <a
-                    href="/"
-                    className="inline-block bg-gradient-to-r from-[#ff6b6b] to-[#ff3333] hover:from-[#ff3333] hover:to-[#ff6b6b] text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                  >
-                    Voltar para o início
-                  </a>
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center backdrop-blur-sm bg-white/5 rounded-3xl border border-white/10 p-12 mx-4 max-w-md w-full">
+                    <div className="text-6xl mb-4">💔</div>
+                    <h2 className="text-3xl font-bold text-white mb-4">Página não encontrada</h2>
+                    <p className="text-gray-300 mb-8">
+                      A página que você está procurando não existe ou foi movida.
+                    </p>
+                    <a
+                      href="/"
+                      className="inline-block bg-gradient-to-r from-[#ff6b6b] to-[#ff3333] hover:from-[#ff3333] hover:to-[#ff6b6b] text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    >
+                      Voltar para o início
+                    </a>
+                  </div>
                 </div>
-              </div>
-            }
-          />
-        </Routes>
-      </GlobalBackground>
-    </Router>
+              }
+            />
+          </Routes>
+        </GlobalBackground>
+      </Router>
+    </LanguageProvider>
   );
 }
 

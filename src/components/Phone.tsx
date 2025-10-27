@@ -13,7 +13,7 @@ interface PropsPhone {
   imageUrls?: string[];
 }
 
-// 🆕 Interface para os corações caindo
+
 interface FallingHeart {
   id: number;
   left: number;
@@ -22,7 +22,7 @@ interface FallingHeart {
   delay: number;
 }
 
-// Função auxiliar para converter cores de fundo (mesma do LovePageForm)
+
 const getBackgroundStyle = (backgroundColor: string): string => {
   const gradients = {
     'purple-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)',
@@ -37,14 +37,14 @@ const getBackgroundStyle = (backgroundColor: string): string => {
     'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
   };
 
-  // Se for um gradiente pré-definido, retorna o estilo
+
   if (gradients[backgroundColor as keyof typeof gradients]) {
     return gradients[backgroundColor as keyof typeof gradients];
   }
 
-  // Se for uma cor hexadecimal, cria um gradiente suave
+
   if (backgroundColor.startsWith('#')) {
-    // Função para clarear a cor
+
     const lightenColor = (color: string, percent: number) => {
       const num = parseInt(color.replace('#', ''), 16);
       const amt = Math.round(2.55 * percent);
@@ -66,7 +66,7 @@ const getBackgroundStyle = (backgroundColor: string): string => {
     return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
   }
 
-  // Fallback para rosa
+
   return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
 };
 
@@ -114,16 +114,16 @@ function Phone({
     if (totalImages > 0) setCurrentIndex(0);
   }, [files, savedImages]);
 
-  // 🆕 Efeito para gerar corações caindo
+
   useEffect(() => {
     if (files.length > 0 || savedImages.length > 0) {
       // Gerar corações iniciais
       const initialHearts: FallingHeart[] = Array.from({ length: 15 }, (_, i) => ({
         id: i,
-        left: Math.random() * 100, // 0% a 100%
-        animationDuration: 5 + Math.random() * 5, // 5-10 segundos
-        size: 12 + Math.random() * 12, // 12-24px
-        delay: Math.random() * 8, // 0-8 segundos de delay
+        left: Math.random() * 100, 
+        animationDuration: 5 + Math.random() * 5, 
+        size: 12 + Math.random() * 12, 
+        delay: Math.random() * 8, 
       }));
       setFallingHearts(initialHearts);
 
@@ -203,7 +203,7 @@ function Phone({
         {relationshipTime}
       </p>
 
-      <div className="relative w-[200px] h-[200px] mx-auto fade-in md:mx-auto md:max-w-4xl mb- overflow-hidden bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+      <div className="relative w-[200px] h-[200px] mx-auto fade-in md:mx-auto mb-12md:max-w-4xl mb- overflow-hidden bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <p className="font-bold text-center text-[12px] mb-4"
           style={{ color: textColor }}>
           Nossos momentos <span className="text-[8px]">
@@ -217,10 +217,10 @@ function Phone({
                 key={currentIndex}
                 src={imagesToDisplay[currentIndex]}
                 alt={`Imagem ${currentIndex + 1}`}
-                className="w-full h-full object-cover rounded-lg transition-all duration-500"
+                className="w-full h-full object-cover rounded-lg transition-all duration-500  "
               />
 
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 pointer-events-none ">
                 {fallingHearts.map((heart) => (
                   <img
                     key={heart.id}
@@ -289,7 +289,7 @@ function Phone({
         ) : (
           <label
             htmlFor="file-upload-input"
-            className="w-full h-full rounded-[30px] cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969] relative"
+            className="w-full h-full rounded-[30px]   cursor-pointer bg-[url('upload.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center hover:opacity-80 transition-opacity border-4 border-transparent hover:border-[#ff6969] relative"
           >
             
           </label>
@@ -305,7 +305,7 @@ function Phone({
         />
       </div>
 
-      <p className="mt-3 bg-white/20 backdrop-blur-s text-center rounded-2xl p-6 md:p-8 mb-3 transform hover:scale-[1.02] transition duration-300 "
+      <p className="mt-3  bg-white/20 backdrop-blur-s text-center rounded-2xl p-6 md:p-8 mb-3 transform hover:scale-[1.02] transition duration-300 "
         style={{ color: textColor }}>
         "{CoupleMessage}"
       </p>
