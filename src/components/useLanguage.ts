@@ -161,7 +161,7 @@ export const LanguageProvider = (props: { children: React.ReactNode }) => {
       faq6question: "Can I edit my personalized page after creation?",
       faq6answer: "Yes. Once you receive the link to your page, it will include an edit section that you can use to make changes.",
       faq7question: "What is the cost to create a personalized page on Eternal Anniversary?",
-      faq7answer: "Currently, the cost to create a page on Eternal Anniversary is only $12.90 for the basic price, $18.90 for the intermediate price and $29.90 for the eternal plan.",
+      faq7answer: "Currently, the cost to create a page on Eternal Anniversary is only $3.49 for the basic price, $4.49 for the intermediate price and $7.49 for the eternal plan.",
       faq8question: "How long does it take to receive the QR code by email?",
       faq8answer: "Pix payments are ready immediately. Credit card payments take up to 30 minutes!",
       faq9question: "What payment methods are accepted?",

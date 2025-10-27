@@ -1,4 +1,4 @@
-// components/Steps.tsx
+
 'use client';
 import "lucide-react";
 import { ListChecks, Calendar, Image, Music, CreditCard, Heart } from "lucide-react";
@@ -137,7 +137,6 @@ const Steps: FC = () => {
   );
 };
 
-// Componente TimelineItem (mantido igual)
 type TimelineItemProps = {
   icon: LucideIcon;
   text: string;

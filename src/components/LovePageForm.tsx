@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import PlanCard from "./PlanCard";
 import { plansData, type Plan } from "./plansData";
 import { createLovePage } from "../firebase/firebaseService";
@@ -8,6 +8,7 @@ import SuccessPage from "./SucessPage";
 import { convertFilesToDataUrls, saveImagesToStorage } from "./imageStorage";
 import { useLanguage } from './useLanguage'; 
 import { translations } from './translations'; 
+import { compressFilesUsingCanvas } from "./imageCompression";
 
 type PaymentMethod = "pix" | "credit_card";
 
@@ -137,6 +138,16 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
     type: string;
   }>({ text: "", type: "" });
 
+  // Memo para dados do modal de pagamento (evita re-renders e mantém ordem dos hooks)
+  const paymentUserData = useMemo(() => (
+    selectedPlan ? {
+      email: email,
+      coupleName: coupleName,
+      planTitle: selectedPlan.title,
+      photosCount: selectedPlan.photos
+    } : null
+  ), [email, coupleName, selectedPlan]);
+
   useEffect(() => {
     const savedName = localStorage.getItem("coupleName");
     const savedMessage = localStorage.getItem("CoupleMessage");
@@ -242,7 +253,6 @@ const updateRelationshipTime = useCallback(() => {
 
       setFiles(filesArray);
 
-      // Salvar imagens em cache imediatamente
       try {
         const dataUrls = await convertFilesToDataUrls(filesArray);
         saveImagesToStorage(dataUrls);
@@ -303,8 +313,16 @@ const updateRelationshipTime = useCallback(() => {
       type: f.type 
     })));
 
-    // Verifique se os arquivos são válidos
-    files.forEach((file, index) => {
+    let filesToUpload: File[] = files;
+    try {
+      filesToUpload = await compressFilesUsingCanvas(files, { maxWidthOrHeight: 1920, quality: 0.8 });
+      console.log("🗜️ Imagens comprimidas:", filesToUpload.length);
+    } catch (e) {
+      console.warn("⚠️ Falha ao comprimir imagens, usando originais.");
+      filesToUpload = files;
+    }
+
+    filesToUpload.forEach((file, index) => {
       console.log(`📄 Arquivo ${index + 1}:`, {
         name: file.name,
         size: file.size,
@@ -324,7 +342,7 @@ const updateRelationshipTime = useCallback(() => {
         startTime,
         email,
         planTitle: selectedPlan?.title || "",
-        filesCount: files.length,
+        filesCount: filesToUpload.length,
         textColor,
         backgroundColor
       });
@@ -337,7 +355,7 @@ const updateRelationshipTime = useCallback(() => {
         startTime,
         email,
         selectedPlan?.title || "",
-        files, // ← VERIFIQUE SE ESTÁ PASSANDO OS FILES CORRETAMENTE
+        filesToUpload, 
         textColor,
         backgroundColor
       );
@@ -346,21 +364,10 @@ const updateRelationshipTime = useCallback(() => {
       console.log("📄 Page ID:", pageId);
       console.log("🔗 Custom Slug:", customSlug);
 
-      const customPageUrl = `${window.location.origin}/shared/${customSlug}`;
-
-      console.log("🌐 URL Personalizada:", customPageUrl);
-
-      setCreatedPageUrl(customPageUrl);
-
-     
-      const successPageUrl = `${
-        window.location.origin
-      }/success?pageUrl=${encodeURIComponent(
-        customPageUrl
-      )}&coupleName=${encodeURIComponent(coupleName)}`;
-      
-      console.log("🎉 Abrindo página de sucesso:", successPageUrl);
-      window.open(successPageUrl, "_blank");
+      const detailsUrl = `${window.location.origin}/detalhes_do_relacionamento/${pageId}`;
+      console.log("🌐 URL de detalhes:", detailsUrl);
+      setCreatedPageUrl(detailsUrl);
+      window.location.href = detailsUrl;
 
       setShowSuccessPage(false);
 
@@ -508,235 +515,200 @@ const updateRelationshipTime = useCallback(() => {
                 </span>
               </button>
 
-              {/* Seletor de Cor Personalizada */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-600">
-                <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-6 h-6 rounded cursor-pointer"
-                />
-                <span className="text-white text-sm">
-                  {language === 'pt' ? 'Personalizada' : 'Custom'}
-                </span>
-              </div>
+              
             </div>
           </div>
 
           {/* Cor de Fundo - Gradientes Pré-definidos */}
           <div className="space-y-3">
-            <label className="text-sm text-gray-300">
-              {language === 'pt' ? 'Cor de Fundo' : 'Background Color'}
-            </label>
+           
             
-            {/* Gradientes Pré-definidos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {/* Roxo */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('purple-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'purple-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Roxo' : 'Purple'}
-                </span>
-              </button>
+         
+<div className="space-y-3">
+  <label className="text-sm text-gray-300">
+    {language === 'pt' ? 'Cor de Fundo' : 'Background Color'}
+  </label>
+  
+  <div className="flex items-center gap-3 mb-3">
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('pink-gradient')}
+      className={`w-12 h-12 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'pink-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+    
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-pink-400"></div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-white text-xs font-bold"></span>
+      </div>
+    </button>
+    
+    
+    <button
+      type="button"
+      onClick={() => {
+        const element = document.getElementById('color-palette');
+        if (element) {
+          element.classList.toggle('hidden');
+        }
+      }}
+      className="text-white text-sm font bold bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-lg transition duration-200"
+    >
+      {language === 'pt' ? '→ Mais cores' : '→ More colors'}
+    </button>
+  </div>
 
-              {/* Azul */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('blue-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'blue-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Azul' : 'Blue'}
-                </span>
-              </button>
+  {/* Paleta de cores expansível */}
+  <div id="color-palette" className="grid grid-cols-6 gap-2 hidden">
+    {/* Roxo */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('purple-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'purple-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Roxo"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-400"></div>
+    </button>
 
-              {/* Vermelho */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('red-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'red-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Vermelho' : 'Red'}
-                </span>
-              </button>
+    {/* Azul */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('blue-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'blue-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Azul"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-400"></div>
+    </button>
 
-              {/* Rosa */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('pink-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'pink-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-pink-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Rosa' : 'Pink'}
-                </span>
-              </button>
+    {/* Vermelho */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('red-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'red-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Vermelho"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-400"></div>
+    </button>
 
-              {/* Amarelo */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('yellow-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'yellow-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-yellow-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">
-                  {language === 'pt' ? 'Amarelo' : 'Yellow'}
-                </span>
-              </button>
+    {/* Rosa */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('pink-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'pink-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Rosa"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-pink-400"></div>
+    </button>
 
-              {/* Laranja */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('orange-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'orange-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Laranja' : 'Orange'}
-                </span>
-              </button>
+    {/* Amarelo */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('yellow-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'yellow-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Amarelo"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-yellow-400"></div>
+    </button>
 
-              {/* Verde */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('green-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'green-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-400"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Verde' : 'Green'}
-                </span>
-              </button>
+    {/* Laranja */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('orange-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'orange-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Laranja"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-400"></div>
+    </button>
 
-              {/* Preto */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('black-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'black-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Preto' : 'Black'}
-                </span>
-              </button>
+    {/* Verde */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('green-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'green-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Verde"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-400"></div>
+    </button>
 
-              {/* Branco */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('white-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'white-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-black font-medium drop-shadow">
-                  {language === 'pt' ? 'Branco' : 'White'}
-                </span>
-              </button>
+    {/* Preto */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('black-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'black-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Preto"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700"></div>
+    </button>
 
-              {/* Cinza */}
-              <button
-                type="button"
-                onClick={() => setBackgroundColor('gray-gradient')}
-                className={`h-16 rounded-lg border-2 transition-all relative overflow-hidden ${
-                  backgroundColor === 'gray-gradient' 
-                    ? 'border-white ring-2 ring-white' 
-                    : 'border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-300"></div>
-                <span className="absolute bottom-1 left-1 text-xs text-white font-medium drop-shadow">
-                  {language === 'pt' ? 'Cinza' : 'Gray'}
-                </span>
-              </button>
-            </div>
+    {/* Branco */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('white-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'white-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Branco"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
+    </button>
 
-            {/* Seletor de Cor Personalizada */}
-            <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-              <label className="text-sm text-gray-300 mb-2 block">
-                {language === 'pt' ? 'Cor Personalizada' : 'Custom Color'}
-              </label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="color"
-                  value={backgroundColor.startsWith('#') ? backgroundColor : '#ec4899'}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-500"
-                />
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={backgroundColor.startsWith('#') ? backgroundColor : '#ec4899'}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400"
-                    placeholder="#hexcolor"
-                  />
-                
-                </div>
-              </div>
-            </div>
+    {/* Cinza */}
+    <button
+      type="button"
+      onClick={() => setBackgroundColor('gray-gradient')}
+      className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
+        backgroundColor === 'gray-gradient' 
+          ? 'border-white ring-2 ring-white' 
+          : 'border-gray-600 hover:border-gray-400'
+      }`}
+      title="Cinza"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-300"></div>
+    </button>
+  </div>
+</div>
+
+            
           </div>
 
-          {/* Preview das Cores */}
-          <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-            <label className="text-sm text-gray-300 mb-2 block">
-              {language === 'pt' ? 'Preview' : 'Preview'}
-            </label>
-            <div 
-              className="h-20 rounded-lg flex items-center justify-center transition-all duration-300"
-              style={{ 
-                background: getBackgroundStyle(backgroundColor),
-              }}
-            >
-              <span 
-                className="text-lg font-semibold px-4 py-2 rounded"
-                style={{ color: textColor }}
-              >
-                {language === 'pt' ? 'Seu texto aparecerá assim' : 'Your text will appear like this'}
-              </span>
-            </div>
-          </div>
+          
         </div>
 
         <textarea
@@ -810,20 +782,19 @@ const updateRelationshipTime = useCallback(() => {
           onChange={handleFileChange}
           style={{ display: "none" }}
         />
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          className="w-full py-4 mt-6 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center space-x-2"
-        >
-          {files.length > 0
-            ? (() => {
-                return files.length === 1
-                  ? language === 'pt' ? "1 imagem selecionada" : "1 image selected"
-                  : language === 'pt' ? `${files.length} imagens selecionadas` : `${files.length} images selected`;
-              })()
-            : `${t.select_image} ${selectedPlan.photos}`}
-        </button>
-
+      <button
+  type="button"
+  onClick={handleButtonClick}
+  className="w-full py-4 mt-6 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+>
+  {files.length > 0
+    ? (() => {
+        return files.length === 1
+          ? language === 'pt' ? "1 imagem selecionada" : "1 image selected"
+          : language === 'pt' ? `${files.length} imagens selecionadas` : `${files.length} images selected`;
+      })()
+    : `${t.select_image} ${selectedPlan.photos} ${language === 'pt' ? 'imagens' : 'images'}`}
+</button>
         <button
           type="button"
           className="w-full py-4 bg-[#ff6969] hover:bg-[#ff5c5c] text-white font-bold rounded-lg transition duration-200 text-xl disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
@@ -856,17 +827,12 @@ const updateRelationshipTime = useCallback(() => {
         </button>
       </div>
 
-      {isModalOpen && selectedPlan && (
+      {isModalOpen && selectedPlan && paymentUserData && (
         <PaymentModal
           initialPlanValue={selectedPlan.priceDiscounted}
           onCancel={() => setIsModalOpen(false)}
           onConfirm={handleConfirmPaymentAndCreation}
-          userData={{
-            email: email,
-            coupleName: coupleName,
-            planTitle: selectedPlan.title,
-            photosCount: selectedPlan.photos
-          }}
+          userData={paymentUserData}
         />
       )}
 

@@ -70,6 +70,14 @@ export interface TranslationKeys {
   minutes: string;
   second: string;
   seconds: string;
+  photo: string;
+  spansubtitle: string;
+  priceoriginal: string;
+  priceoriginal2: string;
+  priceoriginal3: string;
+  pricediscounted: string;
+  pricediscounted2: string;
+  pricediscounted3: string;
   
 }
 

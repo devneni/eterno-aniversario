@@ -67,6 +67,9 @@ export const usePixPayment = ({
         };
 
         setPixData(pixData);
+        try {
+          localStorage.setItem('ea_payment_id', pixData.paymentId);
+        } catch {}
         console.log("🎉 PIX SIMULADO criado com sucesso");
         return pixData;
       }
@@ -80,10 +83,11 @@ export const usePixPayment = ({
       if (!client?.id) {
         console.log("👤 Cliente não encontrado, criando novo...");
         const firstName = userEmail.split('@')[0] || 'Usuario';
-        client = await PaymentApiService.createClient(userEmail, firstName, 'Cliente');
-        
+        const created = await PaymentApiService.createClient(userEmail, firstName, 'Cliente');
+        // Após criar, tente buscar novamente para confirmar propagação/cache
+        client = created?.id ? created : await PaymentApiService.searchClient(userEmail);
         if (!client?.id) {
-          throw new Error('Não foi possível criar o cliente');
+          throw new Error('Não foi possível criar o cliente. Tente novamente em alguns segundos.');
         }
       }
 
@@ -91,6 +95,7 @@ export const usePixPayment = ({
       // Simulação de criptografia - ajuste conforme sua API
       const encryptedAmount = `MTYuOXxhZEE2UzVEMUE2NVNEQTZTNUQxRB5rVe`;
       const description = `Site de fotos ${coupleName} - ${planTitle} - ${photosCount} fotos`;
+ 
 
       const pixResponse = await PaymentApiService.createPixPayment({
         amount: encryptedAmount,
@@ -99,33 +104,33 @@ export const usePixPayment = ({
         userId: client.id
       });
 
+      const rawBase64: string = pixResponse.point_of_interaction.transaction_data.qr_code_base64;
+      const qrCodeImageUrl = rawBase64?.startsWith('data:') ? rawBase64 : `data:image/png;base64,${rawBase64}`;
       const pixData: PixData = {
-        qrCodeImageUrl: pixResponse.point_of_interaction.transaction_data.qr_code_base64,
+        qrCodeImageUrl,
         pixKey: pixResponse.point_of_interaction.transaction_data.qr_code,
         amount: pixResponse.transaction_amount,
         paymentId: pixResponse.id.toString()
       };
 
       setPixData(pixData);
+      try {
+        localStorage.setItem('ea_payment_id', pixData.paymentId);
+      } catch {}
       console.log("✅ Pagamento PIX REAL criado com sucesso");
       return pixData;
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       console.error("❌ Erro no createPixPayment:", errorMessage);
-      
-      // Se não estava usando simulação, tenta usar simulação como fallback
-      if (!useSimulation) {
-        console.log("🔄 Tentando fallback para simulação...");
-        return await createPixPayment(true); // Chama recursivamente com simulação
-      }
-      
       setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
     }
   }, [userEmail, coupleName, planTitle, photosCount, totalValue, simulateApiCall]);
+  
+
 
   const monitorPaymentStatus = useCallback(async (paymentId: string): Promise<boolean> => {
     console.log("📊 Monitorando pagamento:", paymentId);

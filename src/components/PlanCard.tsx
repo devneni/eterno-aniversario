@@ -13,6 +13,36 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
   const { language } = useLanguage();
   const t = translations[language];
 
+  const getDisplayTitle = () => {
+    if (language === 'pt') {
+      if (plan.id === 'eternal') return 'Eterno';
+      return '1 ano';
+    } else {
+      if (plan.id === 'eternal') return 'Eternal';
+      return '1 year';
+    }
+  };
+
+  // Função para obter o preço formatado baseado no ID do plano e tipo de preço
+  const getFormattedPrice = (planId: string, priceType: 'original' | 'discounted') => {
+    const priceMap = {
+      'no_music': {
+        original: t.priceoriginal,
+        discounted: t.pricediscounted
+      },
+      'with_music': {
+        original: t.priceoriginal2,
+        discounted: t.pricediscounted2
+      },
+      'eternal': {
+        original: t.priceoriginal3,
+        discounted: t.pricediscounted3
+      }
+    };
+    
+    return priceMap[planId as keyof typeof priceMap][priceType];
+  };
+
   return (
     <div 
       onClick={() => onSelect(plan.id)}
@@ -36,9 +66,9 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
           plan.id === "eternal" ? "bg-[white]" : "bg-[white]"
         }`}
       >
-        <h3 className="text-lg font-bold">{plan.title}</h3>
+        <h3 className="text-lg font-bold">{getDisplayTitle()}</h3>
         <p className="text-sm">
-          {plan.photos} {plan.photos === 1 ? t.photos : t.photos}
+          {plan.photos} {plan.photos === 1 ? t.photo : t.photos}
         </p>
         <p className="text-sm">
           {plan.music ? t.with_music : t.without_music}
@@ -46,10 +76,10 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isSelected, onSelect }) => {
       </div>
       <div className="text-center mt-2">
         <p className="text-xs line-through text-gray-500">
-          {language === 'pt' ? 'de' : 'from'} R$ {plan.priceOriginal.toFixed(2).replace(".", ",")}
+          {language === 'pt' ? 'de' : 'from'} {getFormattedPrice(plan.id, 'original')}
         </p>
         <p className="text-xl font-extrabold text-red-400">
-          {language === 'pt' ? 'por' : 'for'} R$ {plan.priceDiscounted.toFixed(2).replace(".", ",")}
+          {language === 'pt' ? 'por' : 'for'} {getFormattedPrice(plan.id, 'discounted')}
         </p>
       </div>
     </div>

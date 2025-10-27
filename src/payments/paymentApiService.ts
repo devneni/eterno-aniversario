@@ -54,7 +54,12 @@ export class PaymentApiService {
         }
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let detail = '';
+          try {
+            const text = await response.text();
+            detail = text?.slice(0, 500) || '';
+          } catch {}
+          throw new Error(`HTTP error! status: ${response.status}${detail ? ` | body: ${detail}` : ''}`);
         }
         
         return response;
@@ -70,6 +75,7 @@ export class PaymentApiService {
 
   // 1. Buscar cliente por email
   static async searchClient(email: string): Promise<ClientData | null> {
+
     // Verifica cache primeiro
     const cached = this.clientCache.get(email);
     if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
@@ -90,14 +96,22 @@ export class PaymentApiService {
       );
       
       const data = await response.json();
-      
-      // Salva no cache
-      if (data?.id) {
-        this.clientCache.set(email, { id: data.id, timestamp: Date.now() });
+      // Algumas respostas vêm como { id }, outras como { results: [{ id, ... }] }
+      const normalizedId: string | undefined = data?.id
+        ?? data?.results?.[0]?.id
+        ?? data?.results?.[0]?.client_id
+        ?? data?.results?.[0]?.client?.id;
+
+      if (normalizedId) {
+        // Cacheia forma normalizada
+        this.clientCache.set(email, { id: normalizedId, timestamp: Date.now() });
+        console.log("📋 Resposta busca cliente (normalizada):", { id: normalizedId });
+        return { id: normalizedId };
       }
-      
-      console.log("📋 Resposta busca cliente:", data);
-      return data;
+
+      console.log("📋 Resposta busca cliente (sem id):", data);
+      return null;
+
     } catch (error) {
       console.error("❌ Erro ao buscar cliente:", error);
       return null;
@@ -106,6 +120,7 @@ export class PaymentApiService {
 
   // 2. Criar novo cliente
   static async createClient(email: string, firstName: string, lastName: string): Promise<ClientData> {
+
     console.log("👤 Criando cliente:", { email, firstName, lastName });
     
     const response = await this.fetchWithRetry(
@@ -122,14 +137,21 @@ export class PaymentApiService {
     );
     
     const data = await response.json();
-    console.log("✅ Cliente criado:", data);
-    
-    // Atualiza cache
-    if (data?.id) {
-      this.clientCache.set(email, { id: data.id, timestamp: Date.now() });
+    console.log("✅ Cliente criado (raw):", data);
+
+    const createdId: string | undefined = data?.id
+      ?? data?.client_id
+      ?? data?.result?.id;
+
+    if (!createdId) {
+      const msg = data?.message || 'Falha ao criar cliente';
+      console.error("❌ Erro na criação de cliente:", msg);
+      throw new Error(msg);
     }
-    
-    return data;
+
+    // Atualiza cache
+    this.clientCache.set(email, { id: createdId, timestamp: Date.now() });
+    return { id: createdId };
   }
 
   // 3. Criar pagamento PIX

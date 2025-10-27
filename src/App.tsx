@@ -11,6 +11,7 @@ import SuccessPageStandalone from "./components/SuccessPageStandalone";
 import { LanguageProvider, useLanguage } from "./components/useLanguage";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import { translations } from "./components/translations";
+import RelationshipDetailsPage from "./components/RelationshipDetailsPage";
 
 function GlobalBackground({ children }: { children: React.ReactNode }) {
   return (
@@ -75,7 +76,7 @@ function HomePageContent() {
             </h1>
 
             <p className="text-lg md:text-xl lg:text-2xl font-light text-gray-300 leading-relaxed max-w-2xl">
-              {t.subtitle}
+              {t.subtitle}<span className="bg-clip-text font-bold text-transparent bg-gradient-to-r from-[#ff3333] to-[#ff8c8c]">{t.spansubtitle}</span>
             </p>
 
             {/* Features List */}
@@ -216,6 +217,7 @@ function AppContent() {
           <Route path="/" element={<HomePageContent />} />
           <Route path="/page/:pageId" element={<SharedLovePage />} />
           <Route path="/shared/:pageId" element={<SharedLovePage />} />
+          <Route path="/detalhes_do_relacionamento/:docId" element={<RelationshipDetailsPage />} />
           <Route path="/success" element={<SuccessPageStandalone />} />
           <Route
             path="/success/:coupleSlug"

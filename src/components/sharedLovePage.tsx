@@ -140,7 +140,7 @@ const SharedLovePage: React.FC = () => {
 
         if (!pageData) {
           console.log("🔍 Buscando como ID normal...");
-          const docRef = doc(db, "paginas", pageId);
+          const docRef = doc(db, "BIRTHDAY_LOVE", pageId);
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists()) {
