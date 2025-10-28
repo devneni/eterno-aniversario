@@ -8,10 +8,10 @@ import Footer from "./components/Footer";
 import LovePageForm from "./components/LovePageForm";
 import SharedLovePage from "./components/sharedLovePage";
 import SuccessPageStandalone from "./components/SuccessPageStandalone";
+import EditRelationshipPage from "./components/EditRelationshipPage";
 import { LanguageProvider, useLanguage } from "./components/useLanguage";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import { translations } from "./components/translations";
-import RelationshipDetailsPage from "./components/RelationshipDetailsPage";
 
 function GlobalBackground({ children }: { children: React.ReactNode }) {
   return (
@@ -79,7 +79,7 @@ function HomePageContent() {
               {t.subtitle}<span className="bg-clip-text font-bold text-transparent bg-gradient-to-r from-[#ff3333] to-[#ff8c8c]">{t.spansubtitle}</span>
             </p>
 
-            {/* Features List */}
+            
             <div className="flex flex-wrap gap-4 mt-8">
               <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
                 <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
@@ -208,16 +208,16 @@ function AppContent() {
   return (
     <Router>
       <GlobalBackground>
-        {/* LanguageSwitcher fixo no canto */}
+        
         <div className="fixed top-4 right-4 z-50">
           <LanguageSwitcher />
         </div>
         
         <Routes>
           <Route path="/" element={<HomePageContent />} />
-          <Route path="/page/:pageId" element={<SharedLovePage />} />
-          <Route path="/shared/:pageId" element={<SharedLovePage />} />
-          <Route path="/detalhes_do_relacionamento/:docId" element={<RelationshipDetailsPage />} />
+          <Route path="/detalhes_do_relacionamento/:pageId" element={<SuccessPageStandalone />} />
+          <Route path="/para_sempre/:pageId" element={<SharedLovePage />} />
+          <Route path="/editar_relacionamento" element={<EditRelationshipPage />} />
           <Route path="/success" element={<SuccessPageStandalone />} />
           <Route
             path="/success/:coupleSlug"

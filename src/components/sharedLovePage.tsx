@@ -107,6 +107,24 @@ const SharedLovePage: React.FC = () => {
       return validUrls;
     }
 
+    // Se veio como string, tentar converter
+    if (urls && typeof urls === 'string') {
+      try {
+        // Tentar JSON
+        if (urls.trim().startsWith('[')) {
+          const arr = JSON.parse(urls);
+          if (Array.isArray(arr)) {
+            return arr.filter((u: any) => typeof u === 'string' && u.startsWith('https://'));
+          }
+        }
+        // Tentar lista separada por vírgula
+        const parts = urls.split(',').map(s => s.trim()).filter(Boolean);
+        return parts.filter(u => u.startsWith('https://'));
+      } catch (e) {
+        console.warn('⚠️ Não foi possível interpretar imagesUrl string:', e);
+      }
+    }
+
     console.log("❌ Nenhuma imagem disponível");
     return [];
   };

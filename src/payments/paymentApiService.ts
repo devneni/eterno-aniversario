@@ -34,16 +34,20 @@ export class PaymentApiService {
   private static CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
   private static async fetchWithRetry(
-    url: string, 
-    options: RequestInit, 
-    retries = 2, // Reduzido para evitar 429
-    delay = 2000 // Aumentado o delay inicial
+    url: string,
+    options: RequestInit,
+    retries = 2,
+    delay = 2000,
+    timeoutMs = 15000
   ): Promise<Response> {
     for (let i = 0; i < retries; i++) {
       try {
         console.log(`🔄 Tentativa ${i + 1}/${retries} para: ${url}`);
-        
-        const response = await fetch(url, options);
+        // Timeout via AbortController
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
         
         if (response.status === 429) {
           // Too Many Requests - espera mais tempo
@@ -63,9 +67,13 @@ export class PaymentApiService {
         }
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Erro na tentativa ${i + 1}:`, error);
-        if (i === retries - 1) throw error;
+        if (error?.name === 'AbortError') {
+          if (i === retries - 1) throw new Error(`timeout_error: request to ${url} timed out after ${timeoutMs}ms`);
+        } else {
+          if (i === retries - 1) throw error;
+        }
         const waitTime = delay * Math.pow(2, i);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }

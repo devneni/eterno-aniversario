@@ -46,53 +46,6 @@ const MUSIC_LINKS: Record<string, string> = {
   "Marisa Monte - Amor I Love You": "https://www.youtube.com/watch?v=2CPHbEIC6EM&list=RD2CPHbEIC6EM&start_radio=1"
 };
 
-// Função auxiliar para converter cores de fundo
-const getBackgroundStyle = (backgroundColor: string): string => {
-  const gradients = {
-    'purple-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)',
-    'blue-gradient': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
-    'red-gradient': 'linear-gradient(135deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)',
-    'pink-gradient': 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)',
-    'yellow-gradient': 'linear-gradient(135deg, #eab308 0%, #facc15 50%, #fde047 100%)',
-    'orange-gradient': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%)',
-    'green-gradient': 'linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #86efac 100%)',
-    'black-gradient': 'linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%)',
-    'white-gradient': 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 50%, #d1d5db 100%)',
-    'gray-gradient': 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
-  };
-
-  // Se for um gradiente pré-definido, retorna o estilo
-  if (gradients[backgroundColor as keyof typeof gradients]) {
-    return gradients[backgroundColor as keyof typeof gradients];
-  }
-
-  // Se for uma cor hexadecimal, cria um gradiente suave
-  if (backgroundColor.startsWith('#')) {
-    // Função para clarear a cor
-    const lightenColor = (color: string, percent: number) => {
-      const num = parseInt(color.replace('#', ''), 16);
-      const amt = Math.round(2.55 * percent);
-      const R = (num >> 16) + amt;
-      const G = (num >> 8 & 0x00FF) + amt;
-      const B = (num & 0x0000FF) + amt;
-      return `#${(
-        0x1000000 +
-        (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-        (B < 255 ? B < 1 ? 0 : B : 255)
-      ).toString(16).slice(1)}`;
-    };
-
-    const baseColor = backgroundColor;
-    const lighterColor = lightenColor(baseColor, 20);
-    const evenLighterColor = lightenColor(baseColor, 40);
-
-    return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 50%, ${evenLighterColor} 100%)`;
-  }
-
-  // Fallback para rosa
-  return 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #f9a8d4 100%)';
-};
 
 const LovePageForm: React.FC<LovePageFormProps> = ({
   coupleName,
@@ -128,7 +81,7 @@ const LovePageForm: React.FC<LovePageFormProps> = ({
 
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [createdPageUrl, setCreatedPageUrl] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  
   const [selectedMusicTip, setSelectedMusicTip] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -223,17 +176,14 @@ const updateRelationshipTime = useCallback(() => {
   }, [coupleName, CoupleMessage, youtubeLink, startDate, startTime, email,textColor, backgroundColor]);
 
   useEffect(() => {
-  if (files.length > 0) {
-    const urls = files.map(file => URL.createObjectURL(file));
-    setImageUrls(urls);
-    
-    return () => {
-      urls.forEach(url => URL.revokeObjectURL(url));
-    };
-  } else {
-    setImageUrls([]);
-  }
-}, [files]);
+    if (selectedPlan && !selectedPlan.music) {
+      setYoutubeLink("");
+      setSelectedMusicTip(null);
+      try { localStorage.removeItem("youtubeLink"); } catch {}
+    }
+  }, [selectedPlan?.id]);
+
+  
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -289,10 +239,8 @@ const updateRelationshipTime = useCallback(() => {
         type: "success",
       });
 
-      setTimeout(() => {
-        console.log("🚀 Chamando createOnDataBase...");
-        createOnDataBase();
-      }, 500);
+      console.log("🚀 Chamando createOnDataBase imediatamente...");
+      createOnDataBase();
 
       return;
     }
@@ -524,12 +472,12 @@ const updateRelationshipTime = useCallback(() => {
            
             
          
-<div className="space-y-3">
+<div className="space-y-5">
   <label className="text-sm text-gray-300">
     {language === 'pt' ? 'Cor de Fundo' : 'Background Color'}
   </label>
   
-  <div className="flex items-center gap-3 mb-3">
+  <div className="flex items-center gap-5 mb-3">
     <button
       type="button"
       onClick={() => setBackgroundColor('pink-gradient')}
@@ -547,22 +495,11 @@ const updateRelationshipTime = useCallback(() => {
     </button>
     
     
-    <button
-      type="button"
-      onClick={() => {
-        const element = document.getElementById('color-palette');
-        if (element) {
-          element.classList.toggle('hidden');
-        }
-      }}
-      className="text-white text-sm font bold bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-lg transition duration-200"
-    >
-      {language === 'pt' ? '→ Mais cores' : '→ More colors'}
-    </button>
+    
   </div>
 
   {/* Paleta de cores expansível */}
-  <div id="color-palette" className="grid grid-cols-6 gap-2 hidden">
+  <div  className="grid grid-cols-10 gap-2 ">
     {/* Roxo */}
     <button
       type="button"

@@ -17,6 +17,31 @@ interface PixData {
   paymentId: string;
 }
 
+const SECRET_KEY = 'adA6S5D1A65SDA6S5D1';
+function encryptString(value: string): string {
+  const priceString = `${value}|${SECRET_KEY}`;
+  let encoded: string;
+  try {
+    encoded = btoa(unescape(encodeURIComponent(priceString)));
+  } catch {
+    encoded = Buffer.from(priceString, 'utf8').toString('base64');
+  }
+
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    const arr = new Uint32Array(6);
+    window.crypto.getRandomValues(arr);
+    randomString = Array.from(arr, (n) => chars[n % chars.length]).join('');
+  } else {
+    for (let i = 0; i < 6; i++) {
+      randomString += chars[Math.floor(Math.random() * chars.length)];
+    }
+  }
+
+  return `${encoded}${randomString}`;
+}
+
 export const usePixPayment = ({
   userEmail,
   coupleName,
@@ -92,16 +117,15 @@ export const usePixPayment = ({
       }
 
       // 2. Criar pagamento PIX
-      // Simulação de criptografia - ajuste conforme sua API
-      const encryptedAmount = `MTYuOXxhZEE2UzVEMUE2NVNEQTZTNUQxRB5rVe`;
-      const description = `Site de fotos ${coupleName} - ${planTitle} - ${photosCount} fotos`;
+      const encryptedAmount = encryptString(totalValue.toString());
+      const description = `Site de fotos  ${coupleName} - ${planTitle} - ${photosCount} fotos`;
  
 
       const pixResponse = await PaymentApiService.createPixPayment({
         amount: encryptedAmount,
         description,
         email: userEmail,
-        userId: client.id
+        userId: encryptString(client.id)
       });
 
       const rawBase64: string = pixResponse.point_of_interaction.transaction_data.qr_code_base64;

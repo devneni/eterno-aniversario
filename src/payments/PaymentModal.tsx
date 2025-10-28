@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { usePixPayment } from "./usePixPayment";
 import { useLanguage } from "../components/useLanguage";
-import { translations } from "../components/translations";
+ 
 
 type PaymentMethod = "pix";
 
@@ -29,9 +29,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   userData,
 }) => {
   const { language } = useLanguage();
-  const t = translations[language];
 
-  console.log("🎯 PaymentModal renderizado com:", userData);
+  const loggedRef = useRef(false);
+  useEffect(() => {
+    if (!loggedRef.current) {
+      console.log("🎯 PaymentModal renderizado com:", userData);
+      loggedRef.current = true;
+    }
+  }, [userData]);
 
   const [coupon, setCoupon] = useState<string>("");
   const [discountValue, setDiscountValue] = useState<number>(0);
@@ -93,18 +98,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const isDevMode = coupon.toLowerCase() === "devpix";
 
     if (isDevMode) {
-      console.log("🔧 Modo desenvolvimento - usando simulação...");
+      console.log("🔧 DEVPIX ativo - usando simulação...");
       // Força modo simulação
       const pixResult = await createPixPayment(true);
       if (pixResult) {
-        setShowPixDetails(true);
-        // Simula pagamento automático
-        pollTimerRef.current = window.setTimeout(() => {
-          if (confirmedRef.current) return;
-          confirmedRef.current = true;
-          console.log("✅ Pagamento simulado confirmado!");
+        if (confirmedRef.current) return;
+        confirmedRef.current = true;
+        console.log("✅ DEVPIX: pagamento simulado confirmado IMEDIATO. Chamando onConfirm...");
+        try {
+          alert(language === 'pt' ? 'DEVPIX confirmado! Criando página...' : 'DEVPIX confirmed! Creating page...');
           onConfirm("pix", totalValue);
-        }, 3000);
+        } catch (e) { console.error("onConfirm error:", e); }
       } else {
         // Falhou criar PIX simulado (improvável). Exibe erro genérico.
         alert(
@@ -163,20 +167,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   }, [clearPixData]);
 
   const handleUseSimulation = useCallback(async () => {
-    console.log("🧪 Forçando simulação após erro da API");
+    console.log("🧪 DEVPIX fallback: Forçando simulação após erro da API");
     const pixResult = await createPixPayment(true);
     if (pixResult) {
-      setShowPixDetails(true);
-      // Confirmar automaticamente após curto período
       if (pollTimerRef.current) {
         clearTimeout(pollTimerRef.current);
       }
-      pollTimerRef.current = window.setTimeout(() => {
-        if (confirmedRef.current) return;
-        confirmedRef.current = true;
-        console.log("✅ Pagamento simulado confirmado (fallback)!");
+      if (confirmedRef.current) return;
+      confirmedRef.current = true;
+      console.log("✅ DEVPIX fallback: confirmado IMEDIATO. Chamando onConfirm...");
+      try {
+        alert(language === 'pt' ? 'DEVPIX confirmado (fallback)! Criando página...' : 'DEVPIX confirmed (fallback)! Creating page...');
         onConfirm("pix", totalValue);
-      }, 3000);
+      } catch (e) { console.error("onConfirm error:", e); }
     } else {
       alert(
         language === "pt"
@@ -188,15 +191,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const handleCopyPixKey = async () => {
     if (!pixData?.pixKey) return;
+    const text = pixData.pixKey;
     try {
-      await navigator.clipboard.writeText(pixData.pixKey);
-      setCopyMessage(
-        language === "pt" ? "📋 Chave PIX Copiada!" : "📋 PIX Key Copied!"
-      );
+      await navigator.clipboard.writeText(text);
+      setCopyMessage(language === "pt" ? "📋 Chave PIX Copiada!" : "📋 PIX Key Copied!");
     } catch (_err) {
-      setCopyMessage(
-        language === "pt" ? "❌ Falha ao copiar." : "❌ Failed to copy."
-      );
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        setCopyMessage(language === "pt" ? " Chave PIX Copiada!" : " PIX Key Copied!");
+      } catch {
+        setCopyMessage(language === "pt" ? "Falha ao copiar." : " Failed to copy.");
+      }
     }
     setTimeout(() => setCopyMessage(""), 3000);
   };
@@ -302,38 +315,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
           )}
 
-          <div className="text-center mb-6">
-            <p className="text-gray-600 mb-4">
+          <div className="text-center mb-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <p className="text-gray-100 mb-4 text-sm">
               {language === "pt"
                 ? "Escaneie o QR Code para pagar"
                 : "Scan the QR Code to pay"}{" "}
-              <strong>{formatCurrency(pixData.amount)}</strong>
+              <strong className="text-white">{formatCurrency(pixData.amount)}</strong>
             </p>
 
             <div className="flex justify-center mb-4">
               <img
                 src={pixData.qrCodeImageUrl}
                 alt="QR Code Pix"
-                className="w-48 h-48 border rounded-lg"
+                className="w-64 h-64 md:w-72 md:h-72 border border-white/20 rounded-2xl shadow-xl"
               />
             </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-            <p className="text-sm font-semibold text-gray-700 mb-2">
-              {language === "pt"
-                ? "Chave PIX (Copia e Cola):"
-                : "PIX Key (Copy and Paste):"}
-            </p>
-            <div className="flex gap-2">
-              <code className="flex-1 bg-white p-2 border rounded text-xs overflow-x-auto">
-                {pixData.pixKey}
-              </code>
+            <div className="flex justify-center">
               <button
                 onClick={handleCopyPixKey}
-                className="bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md"
               >
-                {copyMessage || (language === "pt" ? "Copiar" : "Copy")}
+                {copyMessage || (language === "pt" ? "Copiar chave PIX" : "Copy PIX key")}
               </button>
             </div>
           </div>
@@ -489,4 +491,4 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   );
 };
 
-export default PaymentModal;
+export default React.memo(PaymentModal);
